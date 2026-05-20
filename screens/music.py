@@ -1,3 +1,4 @@
+import time
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous, get_volume, set_volume
@@ -13,6 +14,7 @@ class MusicScreen(Screen):
         self._last_position = 0
         self._frozen_position = None
         self._volume = None
+        self._volume_lock = 0
         self._tick = Clock.schedule_interval(self._update, 0.5)
         self._update(0)
 
@@ -53,7 +55,7 @@ class MusicScreen(Screen):
         bar.width = (position / duration) * bar.parent.width if duration > 0 else 0
 
         vol = get_volume()
-        if vol is not None:
+        if vol is not None and time.time() > self._volume_lock:
             self._volume = vol
         if self._volume is not None:
             self.ids.volume_label.text = f'{self._volume}%'
@@ -84,11 +86,13 @@ class MusicScreen(Screen):
 
     def on_volume_up(self):
         self._volume = min(100, (self._volume or 50) + 10)
+        self._volume_lock = time.time() + 1.5
         set_volume(self._volume)
         self._update_volume_ui()
 
     def on_volume_down(self):
         self._volume = max(0, (self._volume or 50) - 10)
+        self._volume_lock = time.time() + 1.5
         set_volume(self._volume)
         self._update_volume_ui()
 

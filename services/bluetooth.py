@@ -130,7 +130,7 @@ def get_volume():
         props = _get_transport()
         if props:
             vol = props.Get("org.bluez.MediaTransport1", "Volume")
-            return int(int(vol) * 100 / 127)
+            return round(int(vol) * 100 / 127)
     except Exception:
         pass
     return None
