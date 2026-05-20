@@ -11,6 +11,7 @@ def _ms_to_mmss(ms):
 class MusicScreen(Screen):
     def on_enter(self):
         self._last_position = 0
+        self._frozen_position = None
         self._tick = Clock.schedule_interval(self._update, 0.5)
         self._update(0)
 
@@ -22,14 +23,26 @@ class MusicScreen(Screen):
         self.ids.title_label.text = info["title"]
         self.ids.artist_label.text = info["artist"]
         self.ids.album_label.text = info["album"]
-        self.ids.playpause_btn.text = "||" if info["status"] == "playing" else ">"
+
+        playing = info["status"] == "playing"
+        self.ids.playpause_btn.text = "||" if playing else ">"
 
         position = info.get("position", 0)
         duration = info.get("duration", 0)
 
-        # Detect seek/restart: position jumped back by more than 2 seconds
-        if self._last_position - position > 2000:
-            self._quick_refresh()
+        if not playing:
+            if self._frozen_position is None:
+                # Just paused — freeze the display here
+                self._frozen_position = self._last_position
+            elif abs(position - self._frozen_position) > 5000:
+                # Seeked while paused — accept the new position
+                self._frozen_position = position
+            position = self._frozen_position
+        else:
+            self._frozen_position = None
+            # Detect seek/restart: position jumped back by more than 2 seconds
+            if self._last_position - position > 2000:
+                self._quick_refresh()
 
         self._last_position = position
         self.ids.time_current.text = _ms_to_mmss(position)
