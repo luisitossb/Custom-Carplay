@@ -36,12 +36,18 @@ class MusicScreen(Screen):
             send_pause()
         else:
             send_play()
-        self._update(0)
+        self._quick_refresh()
 
     def on_next(self):
         send_next()
-        self._update(0)
+        self._quick_refresh()
 
     def on_previous(self):
         send_previous()
-        self._update(0)
+        self._quick_refresh()
+
+    def _quick_refresh(self):
+        # AVRCP metadata takes a few seconds to come back from the iPhone.
+        # Poll aggressively after a control action to catch it as soon as it arrives.
+        for delay in (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
+            Clock.schedule_once(self._update, delay)
