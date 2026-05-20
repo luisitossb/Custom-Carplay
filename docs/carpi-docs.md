@@ -49,6 +49,17 @@ sudo systemctl start vncserver-x11-serviced
 ```
 Then connect with **RealVNC Viewer** (free) on Windows/Mac to `10.0.0.53`.
 
+**Set VNC resolution** (run once, then reboot):
+```bash
+sudo raspi-config nonint do_vnc_resolution 1024x600
+```
+1024x600 matches most 7" touchscreens and runs smoothly on the Pi.
+
+**Check current VNC resolution:**
+```bash
+sudo raspi-config nonint get_vnc_resolution
+```
+
 > **Important:** Always run the Kivy app from a terminal inside the VNC session,
 > not from SSH. SSH has no display — the app will fail with "Unable to connect
 > to X server" when launched over SSH.
@@ -143,8 +154,10 @@ pw-top
 pactl load-module module-loopback \
   source=bluez_input.A0_4E_CF_79_28_38.2 \
   sink=alsa_output.platform-fe00b840.mailbox.stereo-fallback \
-  latency_msec=100
+  latency_msec=30
 ```
+> **Note:** Use `latency_msec=30` not 100. 100ms causes an audible echo/hollow
+> sound. 30ms is clean. Update `~/autoloopback.sh` to match if re-creating.
 
 ### Auto loopback on boot
 Script at `~/autoloopback.sh` polls for the BT source and creates the loopback
@@ -318,6 +331,40 @@ pip install dbus-python
 ### "Unable to connect to X server" when running the app
 Launched from SSH — run from a terminal inside the VNC desktop instead.
 
+### VNC shows "cannot currently show desktop"
+Raspberry Pi OS Bookworm defaults to Wayland which RealVNC doesn't support.
+Switch to X11:
+```bash
+sudo raspi-config nonint do_wayland W1 && sudo reboot
+```
+
+### VNC desktop appears as a tiny corner / mostly black screen
+Overscan/underscan was enabled. Reset it:
+```bash
+sudo raspi-config nonint do_overscan 1
+sudo raspi-config nonint do_vnc_resolution 1024x600
+sudo reboot
+```
+If still broken, nuke all overscan settings from config:
+```bash
+sudo sed -i '/^overscan/d' /boot/firmware/config.txt && sudo reboot
+```
+
+### Audio sounds echoey or hollow through 3.5mm
+The PipeWire loopback `latency_msec` is too high. Reload with 30ms:
+```bash
+pactl unload-module module-loopback
+pactl load-module module-loopback \
+  source=bluez_input.A0_4E_CF_79_28_38.2 \
+  sink=alsa_output.platform-fe00b840.mailbox.stereo-fallback \
+  latency_msec=30
+```
+Also update `~/autoloopback.sh` to use `latency_msec=30` permanently.
+
+### Ground loop hum when connected to car speakers
+A ground loop isolator inline between the Pi 3.5mm and the amp input fixes
+this. Common when Pi and car amp share the same chassis ground.
+
 ### WirePlumber config not taking effect
 ```
 ~/.config/wireplumber/wireplumber.conf.d/   # user-level
@@ -334,16 +381,21 @@ Launched from SSH — run from a terminal inside the VNC desktop instead.
 |---|---|
 | Bluetooth A2DP audio streaming | Working |
 | WirePlumber bluetooth.conf | Working |
-| PipeWire auto-loopback to 3.5mm | Working |
+| PipeWire auto-loopback to 3.5mm (latency_msec=30) | Working |
+| Clean audio — no echo through 3.5mm | Working |
 | AVRCP metadata (title/artist/album/status) | Working |
-| Kivy home screen with live clock | Working |
-| Kivy music screen with real track data | Working |
+| AVRCP track position + duration (progress bar) | Working |
 | Playback controls (prev/play-pause/next) | Working |
-| VNC remote desktop | Working |
-| Auto-boot Kivy on Pi startup | Set up (verify) |
-| Auto-reconnect iPhone on boot | Unknown |
-| Car speaker wiring | Not started |
-| OBD-II integration | Not started |
+| Kivy home screen with live clock | Working |
+| Kivy music screen — Spotify dark theme | Working |
+| Kivy fullscreen + maximized window | Working |
+| VNC remote desktop (X11, 1024x600) | Working |
+| Auto-boot Kivy on Pi startup | Working |
+| iPhone BT reconnect attempt on boot | Working |
+| Car speaker wiring | Planned |
+| Album art (needs Spotify API / dongle) | Planned |
+| Playlist browsing | Planned |
+| OBD-II integration | Planned |
 
 ---
 

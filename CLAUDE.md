@@ -73,16 +73,17 @@ cd ~/Desktop/Custom-Carplay && git pull && source carpi-env/bin/activate && pyth
 
 ## Current Status
 - [x] Bluetooth A2DP audio streaming working
-- [x] AVRCP metadata verified via bluetoothctl
+- [x] AVRCP metadata verified (title, artist, album, status, position, duration)
 - [x] WirePlumber bluetooth.conf working
-- [x] Auto-loopback service (`bt-loopback.service`) set up
-- [x] Kivy home screen with live clock (Spotify dark theme)
-- [x] AVRCP dbus → Kivy live track display
-- [x] Music screen with prev/play-pause/next controls
-- [x] VNC remote desktop working
-- [ ] Auto-boot Kivy app on Pi startup (set up, verify)
-- [ ] Auto-reconnect to iPhone on boot
-- [ ] Car speaker wiring (3.5mm → aux)
+- [x] Auto-loopback service (`bt-loopback.service`) — use `latency_msec=30` (not 100, causes echo)
+- [x] Kivy home screen with live clock (Spotify dark theme, #121212 / #1DB954)
+- [x] Music screen — track info, progress bar, prev/play-pause/next
+- [x] VNC remote desktop (X11 mode, 1024x600)
+- [x] Auto-boot Kivy app on Pi startup (`scripts/setup-autostart.sh`)
+- [x] iPhone BT reconnect attempt on boot (`scripts/start.sh`)
+- [ ] Car speaker wiring (Metra harness + 4-ch amp + ground loop isolator)
+- [ ] Album art (needs Spotify Web API or Carlinkit dongle)
+- [ ] Playlist browsing (same as above)
 - [ ] OBD-II integration (ELM327 + python-obd)
 
 ## Key Commands
