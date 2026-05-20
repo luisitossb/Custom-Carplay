@@ -1,3 +1,5 @@
+import time
+
 try:
     import dbus
     _DBUS_AVAILABLE = True
@@ -5,17 +7,20 @@ except ImportError:
     _DBUS_AVAILABLE = False
 
 _MOCK_TRACKS = [
-    {"title": "Freakin' Out", "artist": "Dexter and The Moonrocks", "album": "Space Hits", "status": "playing"},
-    {"title": "Blinding Lights", "artist": "The Weeknd", "album": "After Hours", "status": "playing"},
-    {"title": "Redbone", "artist": "Childish Gambino", "album": "Awaken, My Love!", "status": "paused"},
+    {"title": "Freakin' Out", "artist": "Dexter and The Moonrocks", "album": "Space Hits", "status": "playing", "duration": 214000},
+    {"title": "Blinding Lights", "artist": "The Weeknd", "album": "After Hours", "status": "playing", "duration": 200000},
+    {"title": "Redbone", "artist": "Childish Gambino", "album": "Awaken, My Love!", "status": "paused", "duration": 326000},
 ]
 _mock_index = 0
+_mock_start = time.time()
 
 
 def get_track():
     if _DBUS_AVAILABLE:
         return _dbus_get_track()
-    return _MOCK_TRACKS[_mock_index % len(_MOCK_TRACKS)]
+    track = _MOCK_TRACKS[_mock_index % len(_MOCK_TRACKS)]
+    elapsed = int((time.time() - _mock_start) * 1000) % track["duration"]
+    return {**track, "position": elapsed}
 
 
 def send_play():
@@ -27,14 +32,16 @@ def send_pause():
 
 
 def send_next():
-    global _mock_index
+    global _mock_index, _mock_start
     _mock_index += 1
+    _mock_start = time.time()
     _dbus_player_command("Next")
 
 
 def send_previous():
-    global _mock_index
+    global _mock_index, _mock_start
     _mock_index = max(0, _mock_index - 1)
+    _mock_start = time.time()
     _dbus_player_command("Previous")
 
 
@@ -69,10 +76,12 @@ def _dbus_get_track():
                     "artist": str(track.get("Artist", "Unknown")),
                     "album": str(track.get("Album", "")),
                     "status": str(player.get("Status", "stopped")),
+                    "position": int(player.get("Position", 0)),
+                    "duration": int(track.get("Duration", 0)),
                 }
-        return {"title": "No device", "artist": "Connect iPhone via Bluetooth", "album": "", "status": "stopped"}
+        return {"title": "No device", "artist": "Connect iPhone via Bluetooth", "album": "", "status": "stopped", "position": 0, "duration": 0}
     except Exception:
-        return {"title": "No device", "artist": "Connect iPhone via Bluetooth", "album": "", "status": "stopped"}
+        return {"title": "No device", "artist": "Connect iPhone via Bluetooth", "album": "", "status": "stopped", "position": 0, "duration": 0}
 
 
 def _dbus_player_command(command):

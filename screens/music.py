@@ -3,9 +3,14 @@ from kivy.clock import Clock
 from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous
 
 
+def _ms_to_mmss(ms):
+    s = int(ms / 1000)
+    return f"{s // 60}:{s % 60:02d}"
+
+
 class MusicScreen(Screen):
     def on_enter(self):
-        self._tick = Clock.schedule_interval(self._update, 2)
+        self._tick = Clock.schedule_interval(self._update, 1)
         self._update(0)
 
     def on_leave(self):
@@ -17,6 +22,13 @@ class MusicScreen(Screen):
         self.ids.artist_label.text = info["artist"]
         self.ids.album_label.text = info["album"]
         self.ids.playpause_btn.text = "||" if info["status"] == "playing" else ">"
+
+        position = info.get("position", 0)
+        duration = info.get("duration", 0)
+
+        self.ids.time_current.text = _ms_to_mmss(position)
+        self.ids.time_total.text = _ms_to_mmss(duration)
+        self.ids.progress_fill.size_hint_x = (position / duration) if duration > 0 else 0
 
     def on_playpause(self):
         info = get_track()

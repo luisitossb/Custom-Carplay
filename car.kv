@@ -220,6 +220,63 @@
             height: 26
 
         Widget:
+            size_hint_y: None
+            height: 20
+
+        # Time labels
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 24
+
+            Label:
+                id: time_current
+                text: '0:00'
+                font_size: '14sp'
+                color: 0.45, 0.45, 0.45, 1
+                halign: 'left'
+                text_size: self.size
+
+            Label:
+                id: time_total
+                text: '0:00'
+                font_size: '14sp'
+                color: 0.45, 0.45, 0.45, 1
+                halign: 'right'
+                text_size: self.size
+
+        Widget:
+            size_hint_y: None
+            height: 8
+
+        # Progress bar
+        BoxLayout:
+            size_hint_y: None
+            height: 5
+            canvas.before:
+                Color:
+                    rgba: 0.22, 0.22, 0.22, 1
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [3]
+
+            Widget:
+                id: progress_fill
+                size_hint_x: 0
+                canvas:
+                    Color:
+                        rgba: 0.114, 0.725, 0.329, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [3]
+
+            Widget:
+
+        Widget:
+            size_hint_y: None
+            height: 20
 
         # Playback controls
         BoxLayout:
