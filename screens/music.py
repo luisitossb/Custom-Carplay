@@ -85,13 +85,13 @@ class MusicScreen(Screen):
         self._quick_refresh()
 
     def on_volume_up(self):
-        self._volume = min(100, (self._volume or 50) + 10)
+        self._volume = min(100, (50 if self._volume is None else self._volume) + 10)
         self._volume_lock = time.time() + 1.5
         set_volume(self._volume)
         self._update_volume_ui()
 
     def on_volume_down(self):
-        self._volume = max(0, (self._volume or 50) - 10)
+        self._volume = max(0, (50 if self._volume is None else self._volume) - 10)
         self._volume_lock = time.time() + 1.5
         set_volume(self._volume)
         self._update_volume_ui()
