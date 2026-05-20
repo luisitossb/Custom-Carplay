@@ -120,29 +120,152 @@
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 40
-        spacing: 20
+        padding: [50, 40, 50, 30]
+        spacing: 0
 
+        # Top bar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 50
+
+            Button:
+                text: '< Home'
+                font_size: '18sp'
+                color: 0.45, 0.45, 0.45, 1
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                size_hint_x: None
+                width: 120
+                on_press: root.manager.current = 'home'
+
+            Widget:
+
+        Widget:
+            size_hint_y: 0.05
+
+        # Album art placeholder
+        AnchorLayout:
+            size_hint_y: 0.3
+            anchor_x: 'center'
+            anchor_y: 'center'
+
+            BoxLayout:
+                size_hint: None, None
+                size: 160, 160
+
+                canvas:
+                    Color:
+                        rgba: 0.15, 0.15, 0.15, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [16]
+
+                Label:
+                    text: 'note'
+                    font_size: '64sp'
+                    color: 0.3, 0.3, 0.3, 1
+
+        Widget:
+            size_hint_y: 0.05
+
+        # Track info
         Label:
-            text: 'Music'
-            font_size: '36sp'
+            id: title_label
+            text: '---'
+            font_size: '32sp'
+            bold: True
             color: 1, 1, 1, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
+            size_hint_y: None
+            height: 50
 
         Label:
-            text: 'Coming soon'
-            font_size: '20sp'
-            color: 0.45, 0.45, 0.45, 1
+            id: artist_label
+            text: '---'
+            font_size: '22sp'
+            color: 0.55, 0.55, 0.55, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
+            size_hint_y: None
+            height: 36
+
+        Label:
+            id: album_label
+            text: ''
+            font_size: '18sp'
+            color: 0.35, 0.35, 0.35, 1
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.width, None
+            size_hint_y: None
+            height: 28
 
         Widget:
 
-        Button:
-            text: 'Back'
+        # Playback controls
+        BoxLayout:
+            orientation: 'horizontal'
             size_hint_y: None
-            height: 60
-            font_size: '18sp'
-            background_normal: ''
-            background_color: 0.12, 0.12, 0.12, 1
-            on_press: root.manager.current = 'home'
+            height: 80
+            spacing: 24
+
+            Button:
+                text: '|<'
+                font_size: '26sp'
+                bold: True
+                color: 0.8, 0.8, 0.8, 1
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                canvas.before:
+                    Color:
+                        rgba: 0.14, 0.14, 0.14, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [12]
+                on_press: root.on_previous()
+
+            Button:
+                id: playpause_btn
+                text: '>'
+                font_size: '30sp'
+                bold: True
+                color: 0.05, 0.05, 0.05, 1
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [12]
+                on_press: root.on_playpause()
+
+            Button:
+                text: '>|'
+                font_size: '26sp'
+                bold: True
+                color: 0.8, 0.8, 0.8, 1
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                canvas.before:
+                    Color:
+                        rgba: 0.14, 0.14, 0.14, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [12]
+                on_press: root.on_next()
+
+        Widget:
+            size_hint_y: None
+            height: 20
 
 
 <MapScreen>:
