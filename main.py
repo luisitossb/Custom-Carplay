@@ -1,12 +1,18 @@
 from kivy.app import App
-from kivy.lang import Builder
+from kivy.uix.screenmanager import ScreenManager
 
-Builder.load_file("car.kv")
+from screens.home import HomeScreen
+from screens.music import MusicScreen
+from screens.map import MapScreen
 
 
 class CarApp(App):
     def build(self):
-        pass
+        sm = ScreenManager()
+        sm.add_widget(HomeScreen(name="home"))
+        sm.add_widget(MusicScreen(name="music"))
+        sm.add_widget(MapScreen(name="map"))
+        return sm
 
 
 if __name__ == "__main__":

@@ -1,1 +1,180 @@
-# Kivy layout root
+#:kivy 2.0
+
+<HomeScreen>:
+    canvas.before:
+        Color:
+            rgba: 0.05, 0.05, 0.05, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [60, 50, 60, 30]
+
+        # Clock
+        AnchorLayout:
+            size_hint_y: 0.6
+            anchor_x: 'center'
+            anchor_y: 'center'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint: None, None
+                size: self.minimum_size
+
+                Label:
+                    id: time_label
+                    text: '--:--'
+                    font_size: '110sp'
+                    bold: True
+                    color: 1, 1, 1, 1
+                    size_hint: None, None
+                    size: self.texture_size
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint: None, None
+                    width: 56
+                    height: self.parent.height if self.parent else 140
+                    padding: [10, 18, 0, 18]
+
+                    Label:
+                        id: ampm_label
+                        text: '--'
+                        font_size: '26sp'
+                        color: 0.45, 0.45, 0.45, 1
+                        halign: 'left'
+                        valign: 'top'
+                        text_size: self.size
+                        size_hint_y: 0.45
+
+                    Widget:
+                        size_hint_y: 0.55
+
+        # Date
+        AnchorLayout:
+            size_hint_y: 0.12
+            anchor_x: 'center'
+            anchor_y: 'center'
+
+            Label:
+                id: date_label
+                text: '---'
+                font_size: '24sp'
+                color: 0.45, 0.45, 0.45, 1
+
+        Widget:
+            size_hint_y: 0.08
+
+        # Nav bar
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.2
+            spacing: 16
+
+            Button:
+                text: 'Music'
+                font_size: '20sp'
+                bold: True
+                color: 0.85, 0.85, 0.85, 1
+                background_normal: ''
+                background_color: 0.12, 0.12, 0.12, 1
+
+                canvas.before:
+                    Color:
+                        rgba: 0.18, 0.18, 0.18, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [12]
+
+                on_press: root.manager.current = 'music'
+
+            Button:
+                text: 'Map'
+                font_size: '20sp'
+                bold: True
+                color: 0.85, 0.85, 0.85, 1
+                background_normal: ''
+                background_color: 0.12, 0.12, 0.12, 1
+
+                canvas.before:
+                    Color:
+                        rgba: 0.18, 0.18, 0.18, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [12]
+
+                on_press: root.manager.current = 'map'
+
+
+<MusicScreen>:
+    canvas.before:
+        Color:
+            rgba: 0.05, 0.05, 0.05, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 40
+        spacing: 20
+
+        Label:
+            text: 'Music'
+            font_size: '36sp'
+            color: 1, 1, 1, 1
+
+        Label:
+            text: 'Coming soon'
+            font_size: '20sp'
+            color: 0.45, 0.45, 0.45, 1
+
+        Widget:
+
+        Button:
+            text: 'Back'
+            size_hint_y: None
+            height: 60
+            font_size: '18sp'
+            background_normal: ''
+            background_color: 0.12, 0.12, 0.12, 1
+            on_press: root.manager.current = 'home'
+
+
+<MapScreen>:
+    canvas.before:
+        Color:
+            rgba: 0.05, 0.05, 0.05, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 40
+        spacing: 20
+
+        Label:
+            text: 'Map'
+            font_size: '36sp'
+            color: 1, 1, 1, 1
+
+        Label:
+            text: 'Coming soon'
+            font_size: '20sp'
+            color: 0.45, 0.45, 0.45, 1
+
+        Widget:
+
+        Button:
+            text: 'Back'
+            size_hint_y: None
+            height: 60
+            font_size: '18sp'
+            background_normal: ''
+            background_color: 0.12, 0.12, 0.12, 1
+            on_press: root.manager.current = 'home'

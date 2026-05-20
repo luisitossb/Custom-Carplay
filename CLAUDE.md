@@ -42,10 +42,12 @@ carpi/
     └── icons/
 ```
 
-## Dev Environment (Mac)
-- Python **3.12** via Homebrew (3.14 not yet supported by Kivy)
-- Venv: `carpi-env`
+## Dev Environment
+**Mac:** Python 3.12 via Homebrew (3.14 not yet supported by Kivy), venv `carpi-env`
 - Run: `source carpi-env/bin/activate && python3.12 main.py`
+
+**Windows:** conda env `voicebot2` (Python 3.11.14), Kivy 2.3.1 installed there
+- Run: `conda activate voicebot2 && python main.py`
 
 ## iPhone Bluetooth
 - MAC: `A0:4E:CF:79:28:38`
