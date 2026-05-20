@@ -10,7 +10,8 @@ def _ms_to_mmss(ms):
 
 class MusicScreen(Screen):
     def on_enter(self):
-        self._tick = Clock.schedule_interval(self._update, 1)
+        self._last_position = 0
+        self._tick = Clock.schedule_interval(self._update, 0.5)
         self._update(0)
 
     def on_leave(self):
@@ -26,6 +27,11 @@ class MusicScreen(Screen):
         position = info.get("position", 0)
         duration = info.get("duration", 0)
 
+        # Detect seek/restart: position jumped back by more than 2 seconds
+        if self._last_position - position > 2000:
+            self._quick_refresh()
+
+        self._last_position = position
         self.ids.time_current.text = _ms_to_mmss(position)
         self.ids.time_total.text = _ms_to_mmss(duration)
         self.ids.progress_fill.size_hint_x = (position / duration) if duration > 0 else 0
@@ -47,7 +53,5 @@ class MusicScreen(Screen):
         self._quick_refresh()
 
     def _quick_refresh(self):
-        # AVRCP metadata takes a few seconds to come back from the iPhone.
-        # Poll aggressively after a control action to catch it as soon as it arrives.
         for delay in (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
             Clock.schedule_once(self._update, delay)
