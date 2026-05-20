@@ -113,6 +113,39 @@ def is_connected():
         return False
 
 
+def get_volume():
+    if not _DBUS_AVAILABLE:
+        return 80  # mock
+    try:
+        bus = dbus.SystemBus()
+        manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
+        for path, interfaces in manager.GetManagedObjects().items():
+            if "org.bluez.MediaPlayer1" in interfaces:
+                vol = interfaces["org.bluez.MediaPlayer1"].get("Volume", None)
+                if vol is not None:
+                    return int(int(vol) * 100 / 127)
+    except Exception:
+        pass
+    return None
+
+
+def set_volume(percent):
+    if not _DBUS_AVAILABLE:
+        return
+    try:
+        raw = int(max(0, min(100, percent)) * 127 / 100)
+        bus = dbus.SystemBus()
+        manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
+        for path, interfaces in manager.GetManagedObjects().items():
+            if "org.bluez.MediaPlayer1" in interfaces:
+                obj = bus.get_object("org.bluez", path)
+                props = dbus.Interface(obj, "org.freedesktop.DBus.Properties")
+                props.Set("org.bluez.MediaPlayer1", "Volume", dbus.UInt16(raw))
+                return
+    except Exception:
+        pass
+
+
 def _dbus_player_command(command):
     if not _DBUS_AVAILABLE:
         return

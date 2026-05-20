@@ -1,6 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
-from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous
+from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous, get_volume, set_volume
 
 
 def _ms_to_mmss(ms):
@@ -12,6 +12,7 @@ class MusicScreen(Screen):
     def on_enter(self):
         self._last_position = 0
         self._frozen_position = None
+        self._volume = None
         self._tick = Clock.schedule_interval(self._update, 0.5)
         self._update(0)
 
@@ -50,6 +51,13 @@ class MusicScreen(Screen):
         self.ids.time_total.text = _ms_to_mmss(duration)
         self.ids.progress_fill.size_hint_x = (position / duration) if duration > 0 else 0
 
+        vol = get_volume()
+        if vol is not None:
+            self._volume = vol
+        if self._volume is not None:
+            self.ids.volume_label.text = f'{self._volume}%'
+            self.ids.volume_fill.size_hint_x = self._volume / 100
+
     def on_playpause(self):
         info = get_track()
         if info["status"] == "playing":
@@ -71,6 +79,18 @@ class MusicScreen(Screen):
         self._frozen_position = None
         self._update(0)
         self._quick_refresh()
+
+    def on_volume_up(self):
+        self._volume = min(100, (self._volume or 50) + 10)
+        set_volume(self._volume)
+        self.ids.volume_label.text = f'{self._volume}%'
+        self.ids.volume_fill.size_hint_x = self._volume / 100
+
+    def on_volume_down(self):
+        self._volume = max(0, (self._volume or 50) - 10)
+        set_volume(self._volume)
+        self.ids.volume_label.text = f'{self._volume}%'
+        self.ids.volume_fill.size_hint_x = self._volume / 100
 
     def _quick_refresh(self):
         for delay in (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):

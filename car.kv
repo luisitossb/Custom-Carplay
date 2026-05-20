@@ -251,6 +251,101 @@
             size_hint_y: None
             height: 20
 
+        # Volume row
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: None
+            height: 44
+            spacing: 12
+
+            Button:
+                text: '-'
+                font_size: '22sp'
+                bold: True
+                color: 0.702, 0.702, 0.702, 1
+                size_hint_x: None
+                width: 44
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                canvas.before:
+                    Color:
+                        rgba: 0.13, 0.13, 0.13, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [10]
+                on_press: root.on_volume_down()
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 8
+
+                Label:
+                    text: 'VOL'
+                    font_size: '12sp'
+                    color: 0.35, 0.35, 0.35, 1
+                    size_hint_x: None
+                    width: 32
+                    halign: 'left'
+                    text_size: self.size
+                    valign: 'middle'
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: 6
+                    pos_hint: {'center_y': 0.5}
+                    canvas.before:
+                        Color:
+                            rgba: 0.22, 0.22, 0.22, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [3]
+                    Widget:
+                        id: volume_fill
+                        size_hint_x: 0.8
+                        canvas:
+                            Color:
+                                rgba: 0.114, 0.725, 0.329, 1
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [3]
+                    Widget:
+
+                Label:
+                    id: volume_label
+                    text: '--%'
+                    font_size: '13sp'
+                    color: 0.5, 0.5, 0.5, 1
+                    size_hint_x: None
+                    width: 40
+                    halign: 'right'
+                    text_size: self.size
+                    valign: 'middle'
+
+            Button:
+                text: '+'
+                font_size: '22sp'
+                bold: True
+                color: 0.702, 0.702, 0.702, 1
+                size_hint_x: None
+                width: 44
+                background_normal: ''
+                background_color: 0, 0, 0, 0
+                canvas.before:
+                    Color:
+                        rgba: 0.13, 0.13, 0.13, 1
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [10]
+                on_press: root.on_volume_up()
+
+        Widget:
+            size_hint_y: None
+            height: 12
+
         # Playback controls
         BoxLayout:
             orientation: 'horizontal'
