@@ -243,7 +243,8 @@
 
             Widget:
                 id: progress_fill
-                size_hint_x: 0
+                size_hint_x: None
+                width: 0
                 canvas:
                     Color:
                         rgba: 0.114, 0.725, 0.329, 1
@@ -251,8 +252,6 @@
                         pos: self.pos
                         size: self.size
                         radius: [3]
-
-            Widget:
 
         Widget:
             size_hint_y: None
@@ -310,7 +309,8 @@
                             radius: [3]
                     Widget:
                         id: volume_fill
-                        size_hint_x: 0.8
+                        size_hint_x: None
+                        width: 0
                         canvas:
                             Color:
                                 rgba: 0.114, 0.725, 0.329, 1
@@ -318,7 +318,6 @@
                                 pos: self.pos
                                 size: self.size
                                 radius: [3]
-                    Widget:
 
                 Label:
                     id: volume_label

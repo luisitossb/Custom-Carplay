@@ -49,14 +49,16 @@ class MusicScreen(Screen):
         self._last_position = position
         self.ids.time_current.text = _ms_to_mmss(position)
         self.ids.time_total.text = _ms_to_mmss(duration)
-        self.ids.progress_fill.size_hint_x = (position / duration) if duration > 0 else 0
+        bar = self.ids.progress_fill
+        bar.width = (position / duration) * bar.parent.width if duration > 0 else 0
 
         vol = get_volume()
         if vol is not None:
             self._volume = vol
         if self._volume is not None:
             self.ids.volume_label.text = f'{self._volume}%'
-            self.ids.volume_fill.size_hint_x = self._volume / 100
+            vbar = self.ids.volume_fill
+            vbar.width = (self._volume / 100) * vbar.parent.width
 
     def on_playpause(self):
         info = get_track()
@@ -83,14 +85,17 @@ class MusicScreen(Screen):
     def on_volume_up(self):
         self._volume = min(100, (self._volume or 50) + 10)
         set_volume(self._volume)
-        self.ids.volume_label.text = f'{self._volume}%'
-        self.ids.volume_fill.size_hint_x = self._volume / 100
+        self._update_volume_ui()
 
     def on_volume_down(self):
         self._volume = max(0, (self._volume or 50) - 10)
         set_volume(self._volume)
+        self._update_volume_ui()
+
+    def _update_volume_ui(self):
         self.ids.volume_label.text = f'{self._volume}%'
-        self.ids.volume_fill.size_hint_x = self._volume / 100
+        vbar = self.ids.volume_fill
+        vbar.width = (self._volume / 100) * vbar.parent.width
 
     def _quick_refresh(self):
         for delay in (0.5, 1.0, 1.5, 2.0, 2.5, 3.0):
