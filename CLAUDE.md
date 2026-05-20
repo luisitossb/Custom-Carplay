@@ -57,17 +57,32 @@ carpi/
 ## Connectivity
 Verizon blocks hotspot entirely (toggle greyed out, TTL trick not applicable). Project is offline-first for now. Bluetooth audio, AVRCP, and OBD-II all work without internet.
 
+## Pi Deploy Workflow
+```bash
+# First time
+ssh luisito@10.0.0.53
+cd ~/Desktop && git clone https://github.com/luisitossb/Custom-Carplay.git
+cd Custom-Carplay && python3 -m venv carpi-env && source carpi-env/bin/activate
+sudo apt install libdbus-1-dev libglib2.0-dev pkg-config python3-dev
+pip install -r requirements-pi.txt
+
+# Pull updates (from VNC terminal)
+cd ~/Desktop/Custom-Carplay && git pull && source carpi-env/bin/activate && python main.py
+```
+> Always run from a VNC terminal, NOT SSH. SSH has no display.
+
 ## Current Status
 - [x] Bluetooth A2DP audio streaming working
 - [x] AVRCP metadata verified via bluetoothctl
 - [x] WirePlumber bluetooth.conf working
 - [x] Auto-loopback service (`bt-loopback.service`) set up
-- [x] Kivy hello-world verified on Mac
-- [ ] Kivy home screen with clock
-- [ ] AVRCP dbus → Kivy live track display
-- [ ] Music screen (album art, progress bar, controls)
-- [ ] Auto-boot Kivy app on Pi startup
+- [x] Kivy home screen with live clock (Spotify dark theme)
+- [x] AVRCP dbus → Kivy live track display
+- [x] Music screen with prev/play-pause/next controls
+- [x] VNC remote desktop working
+- [ ] Auto-boot Kivy app on Pi startup (set up, verify)
 - [ ] Auto-reconnect to iPhone on boot
+- [ ] Car speaker wiring (3.5mm → aux)
 - [ ] OBD-II integration (ELM327 + python-obd)
 
 ## Key Commands

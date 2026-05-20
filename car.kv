@@ -3,180 +3,221 @@
 <HomeScreen>:
     canvas.before:
         Color:
-            rgba: 0.05, 0.05, 0.05, 1
+            rgba: 0.071, 0.071, 0.071, 1  # #121212
         Rectangle:
             pos: self.pos
             size: self.size
 
     BoxLayout:
         orientation: 'vertical'
-        padding: [60, 50, 60, 30]
+        padding: [70, 60, 70, 40]
 
-        # Clock
+        # Clock block
         AnchorLayout:
-            size_hint_y: 0.6
+            size_hint_y: 0.62
             anchor_x: 'center'
             anchor_y: 'center'
 
             BoxLayout:
-                orientation: 'horizontal'
+                orientation: 'vertical'
                 size_hint: None, None
                 size: self.minimum_size
-
-                Label:
-                    id: time_label
-                    text: '--:--'
-                    font_size: '110sp'
-                    bold: True
-                    color: 1, 1, 1, 1
-                    size_hint: None, None
-                    size: self.texture_size
+                spacing: 4
 
                 BoxLayout:
-                    orientation: 'vertical'
+                    orientation: 'horizontal'
                     size_hint: None, None
-                    width: 56
-                    height: self.parent.height if self.parent else 140
-                    padding: [10, 18, 0, 18]
+                    size: self.minimum_size
 
                     Label:
-                        id: ampm_label
-                        text: '--'
-                        font_size: '26sp'
-                        color: 0.45, 0.45, 0.45, 1
-                        halign: 'left'
-                        valign: 'top'
-                        text_size: self.size
-                        size_hint_y: 0.45
+                        id: time_label
+                        text: '--:--'
+                        font_size: '108sp'
+                        bold: True
+                        color: 1, 1, 1, 1
+                        size_hint: None, None
+                        size: self.texture_size
 
-                    Widget:
-                        size_hint_y: 0.55
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: None, None
+                        width: 54
+                        height: self.parent.height if self.parent else 130
+                        padding: [10, 20, 0, 20]
+
+                        Label:
+                            id: ampm_label
+                            text: '--'
+                            font_size: '24sp'
+                            color: 0.4, 0.4, 0.4, 1
+                            halign: 'left'
+                            valign: 'top'
+                            text_size: self.size
+                            size_hint_y: 0.45
+
+                        Widget:
+                            size_hint_y: 0.55
 
         # Date
         AnchorLayout:
-            size_hint_y: 0.12
+            size_hint_y: 0.1
             anchor_x: 'center'
             anchor_y: 'center'
 
             Label:
                 id: date_label
                 text: '---'
-                font_size: '24sp'
-                color: 0.45, 0.45, 0.45, 1
+                font_size: '22sp'
+                color: 0.114, 0.725, 0.329, 1  # #1DB954 Spotify green
 
         Widget:
-            size_hint_y: 0.08
+            size_hint_y: 0.06
 
         # Nav bar
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.2
-            spacing: 16
+            size_hint_y: 0.22
+            spacing: 14
 
             Button:
                 text: 'Music'
-                font_size: '20sp'
+                font_size: '19sp'
                 bold: True
-                color: 0.85, 0.85, 0.85, 1
+                color: 1, 1, 1, 1
                 background_normal: ''
-                background_color: 0.12, 0.12, 0.12, 1
-
+                background_color: 0, 0, 0, 0
                 canvas.before:
                     Color:
-                        rgba: 0.18, 0.18, 0.18, 1
+                        rgba: 0.114, 0.725, 0.329, 1  # green accent
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [12]
-
+                        radius: [14]
                 on_press: root.manager.current = 'music'
 
             Button:
                 text: 'Map'
-                font_size: '20sp'
+                font_size: '19sp'
                 bold: True
-                color: 0.85, 0.85, 0.85, 1
+                color: 0.7, 0.7, 0.7, 1
                 background_normal: ''
-                background_color: 0.12, 0.12, 0.12, 1
-
+                background_color: 0, 0, 0, 0
                 canvas.before:
                     Color:
-                        rgba: 0.18, 0.18, 0.18, 1
+                        rgba: 0.13, 0.13, 0.13, 1
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [12]
-
+                        radius: [14]
                 on_press: root.manager.current = 'map'
 
 
 <MusicScreen>:
     canvas.before:
         Color:
-            rgba: 0.05, 0.05, 0.05, 1
+            rgba: 0.071, 0.071, 0.071, 1  # #121212
         Rectangle:
             pos: self.pos
             size: self.size
 
     BoxLayout:
         orientation: 'vertical'
-        padding: [50, 40, 50, 30]
+        padding: [50, 36, 50, 36]
         spacing: 0
 
         # Top bar
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 50
+            height: 44
 
             Button:
                 text: '< Home'
-                font_size: '18sp'
-                color: 0.45, 0.45, 0.45, 1
+                font_size: '16sp'
+                color: 0.4, 0.4, 0.4, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 size_hint_x: None
-                width: 120
+                width: 110
                 on_press: root.manager.current = 'home'
 
             Widget:
 
         Widget:
+            size_hint_y: None
+            height: 28
 
-        # Track info
+        # Album art stand-in — green rounded square
+        AnchorLayout:
+            size_hint_y: None
+            height: 180
+            anchor_x: 'center'
+            anchor_y: 'center'
+
+            BoxLayout:
+                size_hint: None, None
+                size: 180, 180
+                canvas:
+                    Color:
+                        rgba: 0.114, 0.725, 0.329, 0.15
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [20]
+                    Color:
+                        rgba: 0.114, 0.725, 0.329, 0.6
+                    Line:
+                        rounded_rectangle: self.x, self.y, self.width, self.height, 20
+                        width: 1.4
+
+        Widget:
+            size_hint_y: None
+            height: 32
+
+        # Track title
         Label:
             id: title_label
             text: '---'
-            font_size: '32sp'
+            font_size: '30sp'
             bold: True
             color: 1, 1, 1, 1
             halign: 'center'
             valign: 'middle'
             text_size: self.width, None
             size_hint_y: None
-            height: 50
+            height: 46
 
+        Widget:
+            size_hint_y: None
+            height: 8
+
+        # Artist
         Label:
             id: artist_label
             text: '---'
-            font_size: '22sp'
-            color: 0.55, 0.55, 0.55, 1
+            font_size: '20sp'
+            color: 0.702, 0.702, 0.702, 1  # #B3B3B3
             halign: 'center'
             valign: 'middle'
             text_size: self.width, None
             size_hint_y: None
-            height: 36
+            height: 34
 
+        Widget:
+            size_hint_y: None
+            height: 6
+
+        # Album
         Label:
             id: album_label
             text: ''
-            font_size: '18sp'
-            color: 0.35, 0.35, 0.35, 1
+            font_size: '16sp'
+            color: 0.325, 0.325, 0.325, 1  # #535353
             halign: 'center'
             valign: 'middle'
             text_size: self.width, None
             size_hint_y: None
-            height: 28
+            height: 26
 
         Widget:
 
@@ -184,74 +225,74 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 80
-            spacing: 24
+            height: 76
+            spacing: 18
 
             Button:
                 text: '|<'
-                font_size: '26sp'
+                font_size: '22sp'
                 bold: True
-                color: 0.8, 0.8, 0.8, 1
+                color: 0.702, 0.702, 0.702, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 canvas.before:
                     Color:
-                        rgba: 0.14, 0.14, 0.14, 1
+                        rgba: 0.13, 0.13, 0.13, 1
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [12]
+                        radius: [14]
                 on_press: root.on_previous()
 
             Button:
                 id: playpause_btn
                 text: '>'
-                font_size: '30sp'
+                font_size: '26sp'
                 bold: True
-                color: 0.05, 0.05, 0.05, 1
+                color: 0.071, 0.071, 0.071, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 canvas.before:
                     Color:
-                        rgba: 1, 1, 1, 1
+                        rgba: 0.114, 0.725, 0.329, 1  # Spotify green
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [12]
+                        radius: [14]
                 on_press: root.on_playpause()
 
             Button:
                 text: '>|'
-                font_size: '26sp'
+                font_size: '22sp'
                 bold: True
-                color: 0.8, 0.8, 0.8, 1
+                color: 0.702, 0.702, 0.702, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 canvas.before:
                     Color:
-                        rgba: 0.14, 0.14, 0.14, 1
+                        rgba: 0.13, 0.13, 0.13, 1
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [12]
+                        radius: [14]
                 on_press: root.on_next()
 
         Widget:
             size_hint_y: None
-            height: 20
+            height: 10
 
 
 <MapScreen>:
     canvas.before:
         Color:
-            rgba: 0.05, 0.05, 0.05, 1
+            rgba: 0.071, 0.071, 0.071, 1
         Rectangle:
             pos: self.pos
             size: self.size
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 40
+        padding: 50
         spacing: 20
 
         Label:
@@ -262,7 +303,7 @@
         Label:
             text: 'Coming soon'
             font_size: '20sp'
-            color: 0.45, 0.45, 0.45, 1
+            color: 0.4, 0.4, 0.4, 1
 
         Widget:
 
@@ -272,5 +313,12 @@
             height: 60
             font_size: '18sp'
             background_normal: ''
-            background_color: 0.12, 0.12, 0.12, 1
+            background_color: 0, 0, 0, 0
+            canvas.before:
+                Color:
+                    rgba: 0.13, 0.13, 0.13, 1
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [14]
             on_press: root.manager.current = 'home'

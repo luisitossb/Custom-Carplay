@@ -1,20 +1,8 @@
-# CarPi Project Documentation
+# CarPi — Full Setup & Troubleshooting Guide
 
-## Project Overview
-
-A custom Raspberry Pi 4 car head unit that:
-- Receives Bluetooth audio from an iPhone (Spotify, calls, etc.)
-- Outputs audio through the Pi's 3.5mm jack to car speakers
-- Displays a custom riced Kivy UI (Tesla-style dashboard)
-- Shows live track info, artist, album via AVRCP Bluetooth metadata
-- Eventually shows OBD-II data (speed, RPM, temp)
-
-**Hardware:**
-- Raspberry Pi 4
-- iPhone (Verizon — hotspot blocked at carrier level)
-- Future: 7-10" capacitive touchscreen, car aux wiring
-
-**Development machine:** MacBook Pro M2 (Python 3.12 via Homebrew)
+A custom Raspberry Pi 4 car head unit. Streams Bluetooth audio from an iPhone,
+displays live AVRCP track info in a Kivy UI, and outputs audio through the Pi's
+3.5mm jack to car speakers.
 
 ---
 
@@ -25,39 +13,56 @@ iPhone (Spotify)
     │
     └── Bluetooth A2DP ──▶ Pi 4 (BlueZ + PipeWire + WirePlumber)
                                 │
-                                ├── AVRCP metadata ──▶ Kivy UI (track info, volume)
+                                ├── AVRCP metadata ──▶ dbus ──▶ Kivy UI
                                 │
-                                └── PipeWire loopback ──▶ 3.5mm jack ──▶ Car speakers
+                                └── PipeWire loopback ──▶ 3.5mm jack ──▶ speakers
 ```
+
+---
+
+## Hardware
+
+| Component | Detail |
+|---|---|
+| Pi | Raspberry Pi 4 |
+| OS | Raspberry Pi OS 64-bit (Bookworm / Debian 13) |
+| Hostname | LuisitoPi |
+| Username | luisito |
+| Local IP | 10.0.0.53 |
+| Audio out | Pi 3.5mm jack → car aux / headphones |
+| Phone | iPhone (Verizon — hotspot blocked at carrier level) |
+| Planned | 7–10" capacitive touchscreen |
 
 ---
 
 ## Pi Setup
 
-**OS:** Raspberry Pi OS (full, 64-bit, Bookworm/Debian 13)
-**Hostname:** LuisitoPi
-**Username:** luisito
-**Local IP:** 10.0.0.53 (SSH access)
+### SSH access
+```bash
+ssh luisito@10.0.0.53
+```
 
-**Audio stack:**
-- PipeWire 1.4.2
-- WirePlumber 0.5.8
-- pipewire-pulse (PulseAudio compatibility layer)
-- libspa-0.2-bluetooth
+### VNC (remote desktop to Pi from Windows/Mac)
+```bash
+sudo systemctl enable vncserver-x11-serviced
+sudo systemctl start vncserver-x11-serviced
+```
+Then connect with **RealVNC Viewer** (free) on Windows/Mac to `10.0.0.53`.
+
+> **Important:** Always run the Kivy app from a terminal inside the VNC session,
+> not from SSH. SSH has no display — the app will fail with "Unable to connect
+> to X server" when launched over SSH.
 
 ---
 
 ## Bluetooth Setup
 
-### iPhone MAC Address
+### iPhone MAC address
 ```
 A0:4E:CF:79:28:38
 ```
 
-### Bluetooth service
-Pi 4 has built-in Bluetooth. Was blocked by rfkill on first boot.
-
-**Fix rfkill block:**
+### First-time rfkill fix (if Bluetooth won't power on)
 ```bash
 sudo rfkill unblock bluetooth
 sudo systemctl enable bluetooth
@@ -72,7 +77,7 @@ agent on
 default-agent
 discoverable on
 pairable on
-# pair from iPhone, then:
+# Pair from iPhone, then:
 trust A0:4E:CF:79:28:38
 exit
 ```
@@ -88,13 +93,15 @@ exit
 ## Audio Configuration
 
 ### The core problem
-By default WirePlumber only advertised `audio-gateway` profile to iPhone,
-meaning the Pi acted as a hands-free kit rather than a Bluetooth speaker.
-iPhone would not offer A2DP streaming unless the Pi advertised `a2dp_sink`.
+By default WirePlumber only advertised `audio-gateway` to the iPhone, making
+the Pi act as a hands-free kit rather than a Bluetooth speaker. The iPhone
+won't offer A2DP streaming unless the Pi advertises `a2dp_sink`.
 
-### Fix: WirePlumber config
-WirePlumber 0.5.x reads config from `/etc/xdg/wireplumber/` NOT `/etc/wireplumber/`.
-The correct config file path is:
+### Critical: WirePlumber config path
+WirePlumber 0.5.x reads from `/etc/xdg/wireplumber/` — **NOT** `/etc/wireplumber/`.
+Both `/etc/wireplumber/` and `/etc/pipewire/pipewire.conf.d/` are silently ignored.
+
+**Correct file:**
 ```
 /etc/xdg/wireplumber/wireplumber.conf.d/bluetooth.conf
 ```
@@ -120,9 +127,6 @@ monitor.bluez.rules = [
 ]
 ```
 
-> **Note:** `/etc/wireplumber/` and `/etc/pipewire/pipewire.conf.d/` were also
-> tried but ignored by WirePlumber 0.5.8. Only `/etc/xdg/wireplumber/` works.
-
 ### Restart audio stack
 ```bash
 systemctl --user restart pipewire pipewire-pulse wireplumber
@@ -134,12 +138,7 @@ pw-top
 # Look for: bluez_input.A0_4E_CF_79_28_38.2  running at 44100Hz
 ```
 
-```bash
-pactl list cards | grep -A 20 "bluez_card"
-# Should show: bluez5.auto-connect = "[ a2dp_sink hfp_hf hsp_hs ]"
-```
-
-### Manual loopback (one-time)
+### Manual loopback (one-time test)
 ```bash
 pactl load-module module-loopback \
   source=bluez_input.A0_4E_CF_79_28_38.2 \
@@ -148,33 +147,29 @@ pactl load-module module-loopback \
 ```
 
 ### Auto loopback on boot
-Script at `~/autoloopback.sh` polls for the Bluetooth source and creates
-the loopback automatically when iPhone connects.
-
-**Service:** `~/.config/systemd/user/bt-loopback.service`
+Script at `~/autoloopback.sh` polls for the BT source and creates the loopback
+when the iPhone connects. Service: `~/.config/systemd/user/bt-loopback.service`
 ```bash
 systemctl --user enable bt-loopback
 systemctl --user start bt-loopback
-systemctl --user status bt-loopback  # check it's running
+systemctl --user status bt-loopback
 ```
 
 ---
 
 ## AVRCP Metadata (Track Info)
 
-When iPhone connects and Spotify is playing, BlueZ exposes a Player object
-with live track metadata. This is what powers the UI music display.
+When iPhone connects and Spotify is playing, BlueZ exposes a MediaPlayer1
+D-Bus object with live track metadata.
 
-**Available data via AVRCP:**
-- `Track.Title` — song name
-- `Track.Artist` — artist
-- `Track.Album` — album
-- `Track.Duration` — total track length (milliseconds)
-- `Player.Position` — current playback position (milliseconds)
+**Available fields:**
+- `Track.Title`, `Track.Artist`, `Track.Album`
+- `Track.Duration` — total length (ms)
+- `Player.Position` — current position (ms)
 - `Player.Status` — playing / paused / stopped
-- `Transport.Volume` — live volume (0-127)
+- `Transport.Volume` — 0–127
 
-**Verified working in bluetoothctl — example output:**
+**Verified working — example bluetoothctl output:**
 ```
 [CHG] Player .../player0 Track.Title: Freakin' Out
 [CHG] Player .../player0 Track.Artist: Dexter and The Moonrocks
@@ -182,99 +177,96 @@ with live track metadata. This is what powers the UI music display.
 [CHG] Transport .../fd0 Volume: 0x0067 (103)
 ```
 
-**Reading this in Python** using `dbus`:
-```python
-import dbus
+---
 
-bus = dbus.SystemBus()
-manager = dbus.Interface(
-    bus.get_object("org.bluez", "/"),
-    "org.freedesktop.DBus.ObjectManager"
-)
-objects = manager.GetManagedObjects()
+## Kivy App
 
-for path, interfaces in objects.items():
-    if "org.bluez.MediaPlayer1" in interfaces:
-        player = interfaces["org.bluez.MediaPlayer1"]
-        track = player.get("Track", {})
-        print("Title:", track.get("Title"))
-        print("Artist:", track.get("Artist"))
-        print("Status:", player.get("Status"))
+### Project structure
+```
+Custom-Carplay/
+├── main.py              # app entry point, ScreenManager
+├── car.kv               # all Kivy layouts (auto-loaded by CarApp)
+├── screens/
+│   ├── home.py          # live clock, ticks every second
+│   ├── music.py         # AVRCP track display + prev/play-pause/next
+│   └── map.py           # placeholder
+├── services/
+│   ├── bluetooth.py     # dbus AVRCP polling; mock fallback on non-Pi
+│   ├── audio.py         # PipeWire loopback (future)
+│   └── obd.py           # OBD-II (future)
+├── assets/fonts/
+├── assets/icons/
+├── docs/carpi-docs.md
+├── requirements.txt         # kivy[full]==2.3.1
+└── requirements-pi.txt      # adds dbus-python (Pi only)
+```
+
+### Cross-platform dev (how bluetooth.py handles Windows vs Pi)
+`services/bluetooth.py` attempts `import dbus` at startup. If it fails
+(Windows has no dbus), `_DBUS_AVAILABLE = False` and the service returns
+rotating mock tracks so the UI can be built without a Pi. On the Pi it
+polls the real BlueZ MediaPlayer1 object every 2 seconds.
+
+---
+
+## Dev Environment Setup
+
+### Windows (development)
+Uses the `voicebot2` conda environment (Python 3.11.14, Kivy 2.3.1).
+```bash
+conda activate voicebot2
+pip install -r requirements.txt
+python main.py
+```
+
+### Mac (development)
+Python 3.12 via Homebrew (3.13+ not yet supported by Kivy).
+```bash
+source carpi-env/bin/activate
+pip install -r requirements.txt
+python3.12 main.py
+```
+
+### Pi — first-time setup
+```bash
+ssh luisito@10.0.0.53
+cd ~/Desktop
+git clone https://github.com/luisitossb/Custom-Carplay.git
+cd Custom-Carplay
+python3 -m venv carpi-env
+source carpi-env/bin/activate
+sudo apt install libdbus-1-dev libglib2.0-dev pkg-config python3-dev
+pip install -r requirements-pi.txt
+```
+
+### Pi — running the app
+Open a terminal **inside the VNC session** (not SSH):
+```bash
+cd ~/Desktop/Custom-Carplay
+source carpi-env/bin/activate
+python main.py
+```
+
+### Pi — pulling updates after a Windows push
+```bash
+cd ~/Desktop/Custom-Carplay
+git pull
+source carpi-env/bin/activate
+python main.py
 ```
 
 ---
 
 ## Connectivity
 
-### Internet on the Pi
-Verizon blocks hotspot at the plan level — the Personal Hotspot toggle is
-completely greyed out. The TTL trick (iptables TTL=65) cannot be applied
-because hotspot can't be enabled at all.
+Verizon blocks hotspot at the plan level — toggle is greyed out. Offline-first.
 
-**Options:**
-1. Call Verizon and add hotspot to the plan (~$10/month)
-2. USB tethering via EasyTether (~$10 one-time, bypasses carrier hotspot check)
-3. Dedicated data SIM (Visible $25/month, runs on Verizon towers, includes hotspot)
-4. Build offline-first (recommended for now)
+**Options if internet is ever needed:**
+1. Call Verizon and add hotspot (~$10/month)
+2. USB tethering via EasyTether (~$10 one-time, bypasses carrier check)
+3. Dedicated SIM — Visible $25/month (Verizon towers, includes hotspot)
 
-**Offline-first is fine for:**
-- Bluetooth audio ✓
-- AVRCP track info ✓
-- OBD-II data ✓
-- Offline maps (Organic Maps) ✓
-
-**Needs internet for:**
-- Google Maps API (live traffic)
-- Weather widgets
-- Spotify API metadata fallback
-
----
-
-## UI Development
-
-### Mac development environment
-```bash
-brew install python@3.12
-brew install pkg-config sdl2 sdl2_image sdl2_ttf sdl2_mixer
-python3.12 -m venv carpi-env
-source carpi-env/bin/activate
-pip install kivy
-python3.12 main.py
-```
-
-> **Important:** Use Python 3.12 specifically. Python 3.14 (Homebrew default)
-> is not supported by Kivy yet.
-
-### Project structure
-```
-carpi/
-├── main.py              # app entry point
-├── car.kv               # Kivy layouts and styles
-├── screens/
-│   ├── home.py          # main dashboard
-│   ├── music.py         # music / AVRCP screen
-│   └── map.py           # navigation screen
-├── services/
-│   ├── bluetooth.py     # AVRCP metadata via dbus
-│   ├── obd.py           # OBD-II data (future)
-│   └── audio.py         # PipeWire loopback management
-└── assets/
-    ├── fonts/
-    └── icons/
-```
-
-### Hello world verified working
-```python
-from kivy.app import App
-from kivy.uix.label import Label
-
-class CarApp(App):
-    def build(self):
-        return Label(text="car pi", font_size=72, color=(1,1,1,1))
-
-if __name__ == "__main__":
-    CarApp().run()
-```
+**Works perfectly offline:** Bluetooth audio, AVRCP track info, OBD-II.
 
 ---
 
@@ -282,7 +274,7 @@ if __name__ == "__main__":
 
 ### Bluetooth won't power on
 ```bash
-rfkill list          # check if soft/hard blocked
+rfkill list
 sudo rfkill unblock bluetooth
 bluetoothctl power on
 ```
@@ -293,18 +285,17 @@ systemctl --user status pipewire pipewire-pulse wireplumber
 systemctl --user restart pipewire pipewire-pulse wireplumber
 ```
 
-### No Bluetooth sink appearing in pactl
-Check WirePlumber is reading the correct config:
+### No Bluetooth sink in pactl
 ```bash
 WIREPLUMBER_DEBUG=3 wireplumber 2>&1 | head -30
 # Look for: opening fragment file: /etc/xdg/wireplumber/...
-# Should NOT say: section 'monitor.bluez.properties' is not defined
+# Bad: section 'monitor.bluez.properties' is not defined
 ```
 
-### Audio streaming but no sound
+### Audio streaming but no sound from 3.5mm
 ```bash
-pw-top   # check bluez_input node is running (R status, not S)
-# Then manually create loopback:
+pw-top   # bluez_input node should be R (running), not S (suspended)
+# If suspended, create loopback manually:
 pactl load-module module-loopback \
   source=bluez_input.A0_4E_CF_79_28_38.2 \
   sink=alsa_output.platform-fe00b840.mailbox.stereo-fallback \
@@ -312,62 +303,82 @@ pactl load-module module-loopback \
 ```
 
 ### iPhone not showing Pi as audio output
-1. Forget device on iPhone and remove on Pi (`bluetoothctl remove MAC`)
+1. Forget device on iPhone and remove on Pi: `bluetoothctl remove A0:4E:CF:79:28:38`
 2. Reboot Pi
-3. Re-pair fresh — iPhone negotiates A2DP correctly on first pairing
-   when Pi is already advertising `a2dp_sink`
+3. Re-pair fresh
+
+### Music screen shows mock data instead of real track
+`dbus-python` not installed in the venv:
+```bash
+sudo apt install libdbus-1-dev libglib2.0-dev pkg-config python3-dev
+source ~/Desktop/Custom-Carplay/carpi-env/bin/activate
+pip install dbus-python
+```
+
+### "Unable to connect to X server" when running the app
+Launched from SSH — run from a terminal inside the VNC desktop instead.
 
 ### WirePlumber config not taking effect
-Config priority order (highest to lowest):
 ```
-~/.config/wireplumber/wireplumber.conf.d/   # user
-/etc/xdg/wireplumber/wireplumber.conf.d/    # system (THIS IS THE ONE THAT WORKS)
+~/.config/wireplumber/wireplumber.conf.d/   # user-level
+/etc/xdg/wireplumber/wireplumber.conf.d/    # system-level ← THIS WORKS
 /usr/share/wireplumber/wireplumber.conf.d/  # stock defaults
 ```
-`/etc/wireplumber/` is NOT read by WirePlumber 0.5.x on this system.
+`/etc/wireplumber/` is NOT read by WirePlumber 0.5.x.
 
 ---
 
-## Next Steps
+## Current Status
 
-- [ ] Build Kivy home screen with clock and basic layout
-- [ ] Hook AVRCP dbus events into Kivy UI (live track display)
-- [ ] Add play/pause/skip controls via AVRCP
-- [ ] Wire Pi 3.5mm to car aux input
-- [ ] Set up auto-boot: Pi launches Kivy app on startup
-- [ ] Set up auto-pair: Pi reconnects to iPhone on boot automatically
-- [ ] Add OBD-II reader (ELM327 Bluetooth adapter + python-obd)
-- [ ] Design music screen with album art and progress bar
-- [ ] Solve internet connectivity (Verizon hotspot or dedicated SIM)
-- [ ] Add Google Maps API integration once internet is solved
+| Feature | Status |
+|---|---|
+| Bluetooth A2DP audio streaming | Working |
+| WirePlumber bluetooth.conf | Working |
+| PipeWire auto-loopback to 3.5mm | Working |
+| AVRCP metadata (title/artist/album/status) | Working |
+| Kivy home screen with live clock | Working |
+| Kivy music screen with real track data | Working |
+| Playback controls (prev/play-pause/next) | Working |
+| VNC remote desktop | Working |
+| Auto-boot Kivy on Pi startup | Set up (verify) |
+| Auto-reconnect iPhone on boot | Unknown |
+| Car speaker wiring | Not started |
+| OBD-II integration | Not started |
+
+---
+
+## Future Ideas
+
+- **Car audio:** 3.5mm → car aux is the simplest path. No aux? FM transmitter
+  or a Bluetooth-to-aux adapter plugged into the car stereo.
+- **Progress bar:** Poll `Player.Position` + `Track.Duration` via AVRCP every second.
+- **Volume control:** `Transport.Volume` is readable and writable over AVRCP.
+- **OBD-II:** ELM327 Bluetooth adapter + `python-obd` library.
+- **Touchscreen:** Most 7" Pi DSI screens are plug-and-play on Bookworm.
+  Set `KIVY_BCM_DISPMANX_ID=4` if Kivy doesn't detect the display.
+- **Performance:** Strip `kivy[full]` extras on Pi, remove unused providers.
+- **Auto-pair:** `bluetoothctl` trust + connect in a boot script.
 
 ---
 
 ## Useful Commands Reference
 
 ```bash
-# SSH into Pi
+# SSH
 ssh luisito@10.0.0.53
 
-# Check Bluetooth status
+# Bluetooth
 bluetoothctl show
-bluetoothctl devices
 bluetoothctl info A0:4E:CF:79:28:38
 
-# Check audio
-pactl list cards short
-pactl list sinks short
-pactl list sources short
-pw-top
-
-# Restart everything
+# Audio
+pactl list cards short && pw-top
 systemctl --user restart pipewire pipewire-pulse wireplumber
-
-# Check loopback service
 systemctl --user status bt-loopback
-journalctl --user -u bt-loopback -f
 
-# Run Kivy app (Mac)
-source carpi-env/bin/activate
-python3.12 main.py
+# Run app (from VNC terminal)
+cd ~/Desktop/Custom-Carplay && source carpi-env/bin/activate && python main.py
+
+# Pull latest code on Pi
+cd ~/Desktop/Custom-Carplay && git pull
 ```
