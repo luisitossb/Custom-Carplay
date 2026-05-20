@@ -1,3 +1,6 @@
+from kivy.config import Config
+Config.set('graphics', 'vsync', '0')
+
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
 

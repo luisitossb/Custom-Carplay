@@ -328,6 +328,15 @@ source ~/Desktop/Custom-Carplay/carpi-env/bin/activate
 pip install dbus-python
 ```
 
+### Kivy app runs at ~5fps / animations show only 3 frames
+SDL2 waits for a vsync signal before presenting each frame. On a VNC virtual
+display with no physical monitor, that signal is broken and SDL2 stalls —
+causing ~5fps regardless of hardware. Fix by disabling vsync:
+```bash
+python -c "from kivy.config import Config; Config.set('graphics', 'vsync', '0'); Config.write()"
+```
+This is also set in `main.py` so it persists even if `~/.kivy/config.ini` is deleted.
+
 ### "Unable to connect to X server" when running the app
 Launched from SSH — run from a terminal inside the VNC desktop instead.
 
