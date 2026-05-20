@@ -1,6 +1,5 @@
 from kivy.config import Config
-Config.set('graphics', 'fullscreen', 'auto')
-Config.set('graphics', 'borderless', '1')
+Config.set('graphics', 'window_state', 'maximized')
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
