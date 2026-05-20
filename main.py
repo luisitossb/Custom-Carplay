@@ -1,5 +1,6 @@
 from kivy.config import Config
 Config.set('graphics', 'window_state', 'maximized')
+Config.set('graphics', 'maxfps', '30')
 
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager
