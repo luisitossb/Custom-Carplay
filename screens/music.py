@@ -42,6 +42,7 @@ class MusicScreen(Screen):
             self._frozen_position = None
             # Detect seek/restart: position jumped back by more than 2 seconds
             if self._last_position - position > 2000:
+                self._last_position = position
                 self._quick_refresh()
 
         self._last_position = position
@@ -59,10 +60,16 @@ class MusicScreen(Screen):
 
     def on_next(self):
         send_next()
+        self._last_position = 0
+        self._frozen_position = None
+        self._update(0)
         self._quick_refresh()
 
     def on_previous(self):
         send_previous()
+        self._last_position = 0
+        self._frozen_position = None
+        self._update(0)
         self._quick_refresh()
 
     def _quick_refresh(self):
