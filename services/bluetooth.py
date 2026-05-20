@@ -113,22 +113,6 @@ def is_connected():
         return False
 
 
-def send_seek(position_ms):
-    if not _DBUS_AVAILABLE:
-        return
-    try:
-        bus = dbus.SystemBus()
-        manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
-        for path, interfaces in manager.GetManagedObjects().items():
-            if "org.bluez.MediaPlayer1" in interfaces:
-                obj = bus.get_object("org.bluez", path)
-                props = dbus.Interface(obj, "org.freedesktop.DBus.Properties")
-                props.Set("org.bluez.MediaPlayer1", "Position", dbus.UInt32(position_ms))
-                return
-    except Exception:
-        pass
-
-
 def _dbus_player_command(command):
     if not _DBUS_AVAILABLE:
         return

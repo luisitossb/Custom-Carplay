@@ -1,6 +1,6 @@
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
-from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous, send_seek
+from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous
 
 
 def _ms_to_mmss(ms):
@@ -70,21 +70,6 @@ class MusicScreen(Screen):
         self._last_position = 0
         self._frozen_position = None
         self._update(0)
-        self._quick_refresh()
-
-    def on_seek(self, touch):
-        bar = self.ids.progress_bar
-        fraction = max(0.0, min(1.0, (touch.x - bar.x) / bar.width))
-        info = get_track()
-        duration = info.get('duration', 0)
-        if duration <= 0:
-            return
-        position_ms = int(fraction * duration)
-        send_seek(position_ms)
-        self._last_position = position_ms
-        self._frozen_position = position_ms if info['status'] != 'playing' else None
-        self.ids.progress_fill.size_hint_x = fraction
-        self.ids.time_current.text = _ms_to_mmss(position_ms)
         self._quick_refresh()
 
     def _quick_refresh(self):
