@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+carpi-env/
+*.venv
+
+# Kivy
+.kivy/
+*.kv~
+
+# Distribution / packaging
+*.whl
+*.tar.gz
+
+# Environment variables
+.env
+.env.*
+*.secret
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# SSH / credentials (never commit these)
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# OBD / serial
+*.bin
+
+# Byte-compiled
+*.pyc
+
+# Claude Code local settings
+.claude/settings.local.json
