@@ -145,34 +145,7 @@
 
         Widget:
             size_hint_y: None
-            height: 28
-
-        # Album art stand-in — green rounded square
-        AnchorLayout:
-            size_hint_y: None
-            height: 180
-            anchor_x: 'center'
-            anchor_y: 'center'
-
-            BoxLayout:
-                size_hint: None, None
-                size: 180, 180
-                canvas:
-                    Color:
-                        rgba: 0.114, 0.725, 0.329, 0.15
-                    RoundedRectangle:
-                        pos: self.pos
-                        size: self.size
-                        radius: [20]
-                    Color:
-                        rgba: 0.114, 0.725, 0.329, 0.6
-                    Line:
-                        rounded_rectangle: self.x, self.y, self.width, self.height, 20
-                        width: 1.4
-
-        Widget:
-            size_hint_y: None
-            height: 32
+            height: 48
 
         # Track title
         Label:
@@ -252,7 +225,7 @@
         # Progress bar
         BoxLayout:
             size_hint_y: None
-            height: 5
+            height: 10
             canvas.before:
                 Color:
                     rgba: 0.22, 0.22, 0.22, 1
@@ -282,14 +255,10 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: None
-            height: 76
+            height: 84
             spacing: 18
 
             Button:
-                text: '|<'
-                font_size: '22sp'
-                bold: True
-                color: 0.702, 0.702, 0.702, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 canvas.before:
@@ -298,31 +267,39 @@
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [14]
+                        radius: [16]
                 on_press: root.on_previous()
+                Image:
+                    id: prev_icon
+                    source: 'assets/icons/prev.png'
+                    size_hint: None, None
+                    size: self.parent.width - 28, self.parent.height - 28
+                    pos: self.parent.x + 14, self.parent.y + 14
+                    fit_mode: 'contain'
+                    mipmap: False
 
             Button:
                 id: playpause_btn
-                text: '>'
-                font_size: '26sp'
-                bold: True
-                color: 0.071, 0.071, 0.071, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 canvas.before:
                     Color:
-                        rgba: 0.114, 0.725, 0.329, 1  # Spotify green
+                        rgba: 0.114, 0.725, 0.329, 1
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [14]
+                        radius: [16]
                 on_press: root.on_playpause()
+                Image:
+                    id: playpause_icon
+                    source: 'assets/icons/play.png'
+                    size_hint: None, None
+                    size: self.parent.width - 28, self.parent.height - 28
+                    pos: self.parent.x + 14, self.parent.y + 14
+                    fit_mode: 'contain'
+                    mipmap: False
 
             Button:
-                text: '>|'
-                font_size: '22sp'
-                bold: True
-                color: 0.702, 0.702, 0.702, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 canvas.before:
@@ -331,8 +308,16 @@
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [14]
+                        radius: [16]
                 on_press: root.on_next()
+                Image:
+                    id: next_icon
+                    source: 'assets/icons/next.png'
+                    size_hint: None, None
+                    size: self.parent.width - 28, self.parent.height - 28
+                    pos: self.parent.x + 14, self.parent.y + 14
+                    fit_mode: 'contain'
+                    mipmap: False
 
         Widget:
             size_hint_y: None

@@ -84,6 +84,35 @@ def _dbus_get_track():
         return {"title": "No device", "artist": "Connect iPhone via Bluetooth", "album": "", "status": "stopped", "position": 0, "duration": 0}
 
 
+_IPHONE_MAC = "A0:4E:CF:79:28:38"
+
+
+def get_battery():
+    if not _DBUS_AVAILABLE:
+        return 72  # mock
+    try:
+        bus = dbus.SystemBus()
+        path = "/org/bluez/hci0/dev_" + _IPHONE_MAC.replace(":", "_")
+        obj = bus.get_object("org.bluez", path)
+        props = dbus.Interface(obj, "org.freedesktop.DBus.Properties")
+        return int(props.Get("org.bluez.Battery1", "Percentage"))
+    except Exception:
+        return None
+
+
+def is_connected():
+    if not _DBUS_AVAILABLE:
+        return True  # mock
+    try:
+        bus = dbus.SystemBus()
+        path = "/org/bluez/hci0/dev_" + _IPHONE_MAC.replace(":", "_")
+        obj = bus.get_object("org.bluez", path)
+        props = dbus.Interface(obj, "org.freedesktop.DBus.Properties")
+        return bool(props.Get("org.bluez.Device1", "Connected"))
+    except Exception:
+        return False
+
+
 def _dbus_player_command(command):
     if not _DBUS_AVAILABLE:
         return

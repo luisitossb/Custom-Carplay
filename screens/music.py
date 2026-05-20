@@ -25,7 +25,7 @@ class MusicScreen(Screen):
         self.ids.album_label.text = info["album"]
 
         playing = info["status"] == "playing"
-        self.ids.playpause_btn.text = "||" if playing else ">"
+        self.ids.playpause_icon.source = 'assets/icons/pause.png' if playing else 'assets/icons/play.png'
 
         position = info.get("position", 0)
         duration = info.get("duration", 0)
