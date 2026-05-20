@@ -113,17 +113,24 @@ def is_connected():
         return False
 
 
+def _get_transport():
+    bus = dbus.SystemBus()
+    manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
+    for path, interfaces in manager.GetManagedObjects().items():
+        if "org.bluez.MediaTransport1" in interfaces:
+            obj = bus.get_object("org.bluez", path)
+            return dbus.Interface(obj, "org.freedesktop.DBus.Properties")
+    return None
+
+
 def get_volume():
     if not _DBUS_AVAILABLE:
         return 80  # mock
     try:
-        bus = dbus.SystemBus()
-        manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
-        for path, interfaces in manager.GetManagedObjects().items():
-            if "org.bluez.MediaPlayer1" in interfaces:
-                vol = interfaces["org.bluez.MediaPlayer1"].get("Volume", None)
-                if vol is not None:
-                    return int(int(vol) * 100 / 127)
+        props = _get_transport()
+        if props:
+            vol = props.Get("org.bluez.MediaTransport1", "Volume")
+            return int(int(vol) * 100 / 127)
     except Exception:
         pass
     return None
@@ -133,15 +140,10 @@ def set_volume(percent):
     if not _DBUS_AVAILABLE:
         return
     try:
-        raw = int(max(0, min(100, percent)) * 127 / 100)
-        bus = dbus.SystemBus()
-        manager = dbus.Interface(bus.get_object("org.bluez", "/"), "org.freedesktop.DBus.ObjectManager")
-        for path, interfaces in manager.GetManagedObjects().items():
-            if "org.bluez.MediaPlayer1" in interfaces:
-                obj = bus.get_object("org.bluez", path)
-                props = dbus.Interface(obj, "org.freedesktop.DBus.Properties")
-                props.Set("org.bluez.MediaPlayer1", "Volume", dbus.UInt16(raw))
-                return
+        raw = dbus.UInt16(int(max(0, min(100, percent)) * 127 / 100))
+        props = _get_transport()
+        if props:
+            props.Set("org.bluez.MediaTransport1", "Volume", raw)
     except Exception:
         pass
 
