@@ -133,19 +133,20 @@
 
             Button:
                 text: '< Home'
-                font_size: '16sp'
-                color: 0.4, 0.4, 0.4, 1
+                font_size: '19sp'
+                bold: True
+                color: 0.7, 0.7, 0.7, 1
                 background_normal: ''
                 background_color: 0, 0, 0, 0
                 size_hint_x: None
-                width: 110
+                width: 120
                 canvas.before:
                     Color:
-                        rgba: (0.18, 0.18, 0.18, 1) if self.state == 'down' else (0, 0, 0, 0)
+                        rgba: (0.22, 0.22, 0.22, 1) if self.state == 'down' else (0.13, 0.13, 0.13, 1)
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [8]
+                        radius: [14]
                 on_press: root.manager.current = 'home'
 
             Widget:
