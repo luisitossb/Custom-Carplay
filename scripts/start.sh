@@ -17,9 +17,4 @@ bluetoothctl connect "$IPHONE_MAC" 2>/dev/null &
 source "$PROJECT_DIR/carpi-env/bin/activate"
 cd "$PROJECT_DIR"
 
-# Launch app and restart on crash — critical for car power cycling
-while true; do
-    python main.py
-    echo "[carpi] App exited at $(date), restarting in 3s..."
-    sleep 3
-done
+python main.py
