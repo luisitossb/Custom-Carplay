@@ -4,9 +4,29 @@ import { WebSocketServer } from 'ws'
 const wss = new WebSocketServer({ port: 4000 })
 const clients = new Set()
 
+// Cache current state so new clients get it immediately on connect
+const cache = { plugged: false, track: null, albumart: null }
+
+let activeCarplay = null
+
 wss.on('connection', (ws) => {
     console.log('Python client connected')
     clients.add(ws)
+
+    // Replay current state to the new client
+    if (cache.plugged) ws.send(JSON.stringify({ type: 'plugged' }))
+    if (cache.track)   ws.send(JSON.stringify({ type: 'media', data: cache.track }))
+    if (cache.albumart) ws.send(JSON.stringify({ type: 'albumart', data: cache.albumart }))
+
+    ws.on('message', (raw) => {
+        try {
+            const msg = JSON.parse(raw)
+            if (msg.type === 'key' && activeCarplay) {
+                activeCarplay.sendKey(msg.action)
+            }
+        } catch {}
+    })
+
     ws.on('close', () => {
         console.log('Python client disconnected')
         clients.delete(ws)
@@ -20,7 +40,6 @@ function broadcast(msg) {
     }
 }
 
-// Track last known title to suppress duplicate "Now playing" logs
 let _lastTitle = ''
 
 function makeCarplay() {
@@ -29,20 +48,19 @@ function makeCarplay() {
         height: 600,
         fps: 30,
         dpi: 160,
-        // frameInterval keeps periodic 'frame' commands flowing to the dongle,
-        // which prevents it from going passive and dropping AVRCP updates
         phoneConfig: {
             CarPlay: { frameInterval: 33 },
             AndroidAuto: { frameInterval: 33 },
         },
     })
+    activeCarplay = cp
+
     cp.onmessage = (msg) => {
         switch (msg.type) {
             case 'plugged':
                 console.log('iPhone plugged in / connected')
                 _lastTitle = ''
-                // Send periodic frame commands so the dongle stays active
-                // and keeps forwarding AVRCP track-change events
+                cache.plugged = true
                 if (!cp._frameTimer) {
                     cp._frameTimer = setInterval(() => cp.sendKey('frame'), 100)
                 }
@@ -51,20 +69,28 @@ function makeCarplay() {
             case 'unplugged':
                 console.log('iPhone unplugged / disconnected')
                 _lastTitle = ''
+                cache.plugged = false
+                cache.track = null
+                cache.albumart = null
                 if (cp._frameTimer) { clearInterval(cp._frameTimer); cp._frameTimer = null }
                 broadcast({ type: 'unplugged' })
                 break
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
+                    // Merge into cache so we always have the latest full state
+                    cache.track = Object.assign({}, cache.track,
+                        Object.fromEntries(Object.entries(m).filter(([, v]) => v !== '' && v != null))
+                    )
                     const key = `${m.MediaArtistName}|${m.MediaSongName}`
                     if (m.MediaSongName && m.MediaArtistName && key !== _lastTitle) {
                         console.log(`Now playing: ${m.MediaArtistName} — ${m.MediaSongName}`)
                         _lastTitle = key
                     }
-                    broadcast({ type: 'media', data: m })
+                    broadcast({ type: 'media', data: cache.track })
                 } else if (msg.message?.payload?.type === 3) {
-                    broadcast({ type: 'albumart', data: msg.message.payload.base64Image })
+                    cache.albumart = msg.message.payload.base64Image
+                    broadcast({ type: 'albumart', data: cache.albumart })
                 }
                 break
             case 'video':
