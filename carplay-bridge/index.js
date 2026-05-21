@@ -35,8 +35,8 @@ function makeCarplay() {
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
-                    if (m.MediaSongName || m.MediaArtistName || m.MediaSongDuration) {
-                        console.log(`Media: ${m.MediaArtistName} — ${m.MediaSongName}`)
+                    if (m.MediaSongName && m.MediaArtistName) {
+                        console.log(`Now playing: ${m.MediaArtistName} — ${m.MediaSongName}`)
                     }
                     broadcast({ type: 'media', data: m })
                 } else if (msg.message?.payload?.type === 3) {

@@ -1,7 +1,8 @@
 import time
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
-from services.bluetooth import get_track, send_play, send_pause, send_next, send_previous, get_volume, set_volume
+from services import carplay as carplay_svc
+from services.bluetooth import get_volume, set_volume, send_play, send_pause, send_next, send_previous
 
 
 def _ms_to_mmss(ms):
@@ -11,6 +12,7 @@ def _ms_to_mmss(ms):
 
 class MusicScreen(Screen):
     def on_enter(self):
+        carplay_svc.start()
         self._last_position = 0
         self._frozen_position = None
         self._volume = None
@@ -22,28 +24,25 @@ class MusicScreen(Screen):
         self._tick.cancel()
 
     def _update(self, dt):
-        info = get_track()
-        self.ids.title_label.text = info["title"]
-        self.ids.artist_label.text = info["artist"]
-        self.ids.album_label.text = info["album"]
+        info = carplay_svc.get_track()
+        self.ids.title_label.text = info['title']
+        self.ids.artist_label.text = info['artist']
+        self.ids.album_label.text = info['album']
 
-        playing = info["status"] == "playing"
+        playing = info['status'] == 'playing'
         self.ids.playpause_icon.source = 'assets/icons/pause.png' if playing else 'assets/icons/play.png'
 
-        position = info.get("position", 0)
-        duration = info.get("duration", 0)
+        position = info.get('position', 0)
+        duration = info.get('duration', 0)
 
         if not playing:
             if self._frozen_position is None:
-                # Just paused — freeze the display here
                 self._frozen_position = self._last_position
             elif abs(position - self._frozen_position) > 5000:
-                # Seeked while paused — accept the new position
                 self._frozen_position = position
-            position = self._frozen_position
+            position = self._frozen_position or 0
         else:
             self._frozen_position = None
-            # Detect seek/restart: position jumped back by more than 2 seconds
             if self._last_position - position > 2000:
                 self._last_position = position
                 self._quick_refresh()
@@ -63,8 +62,8 @@ class MusicScreen(Screen):
             vbar.width = (self._volume / 100) * vbar.parent.width
 
     def on_playpause(self):
-        info = get_track()
-        if info["status"] == "playing":
+        info = carplay_svc.get_track()
+        if info['status'] == 'playing':
             send_pause()
         else:
             send_play()
