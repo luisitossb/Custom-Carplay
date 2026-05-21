@@ -22,6 +22,8 @@ _DEFAULT = {
 _state = dict(_DEFAULT)
 _lock = threading.Lock()
 _ws_thread = None
+_ws = None          # live WebSocket connection for sending commands
+_ws_lock = threading.Lock()
 
 
 def get_track():
@@ -37,6 +39,18 @@ def get_albumart():
 def is_connected():
     with _lock:
         return _state['connected']
+
+
+def send_key(action):
+    """Send a playback command to the dongle via the node bridge.
+    Valid actions: 'play', 'pause', 'next', 'prev'
+    """
+    with _ws_lock:
+        if _ws:
+            try:
+                _ws.send(json.dumps({'type': 'key', 'action': action}))
+            except Exception:
+                pass
 
 
 def _merge_media(data):
@@ -67,6 +81,12 @@ def _merge_media(data):
         _state['status'] = 'playing' if status_val == 1 else 'paused' if status_val == 2 else 'stopped'
 
 
+def _on_open(ws):
+    global _ws
+    with _ws_lock:
+        _ws = ws
+
+
 def _on_message(ws, raw):
     try:
         msg = json.loads(raw)
@@ -85,6 +105,9 @@ def _on_message(ws, raw):
 
 
 def _on_close(ws, *args):
+    global _ws
+    with _ws_lock:
+        _ws = None
     with _lock:
         _state['connected'] = False
 
@@ -94,6 +117,7 @@ def _run_ws():
         try:
             ws = websocket.WebSocketApp(
                 'ws://localhost:4000',
+                on_open=_on_open,
                 on_message=_on_message,
                 on_close=_on_close,
             )

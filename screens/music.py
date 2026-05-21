@@ -2,7 +2,7 @@ import time
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from services import carplay as carplay_svc
-from services.bluetooth import get_volume, set_volume, send_play, send_pause, send_next, send_previous
+from services.bluetooth import get_volume, set_volume
 
 
 def _ms_to_mmss(ms):
@@ -63,21 +63,18 @@ class MusicScreen(Screen):
 
     def on_playpause(self):
         info = carplay_svc.get_track()
-        if info['status'] == 'playing':
-            send_pause()
-        else:
-            send_play()
+        carplay_svc.send_key('pause' if info['status'] == 'playing' else 'play')
         self._quick_refresh()
 
     def on_next(self):
-        send_next()
+        carplay_svc.send_key('next')
         self._last_position = 0
         self._frozen_position = None
         self._update(0)
         self._quick_refresh()
 
     def on_previous(self):
-        send_previous()
+        carplay_svc.send_key('prev')
         self._last_position = 0
         self._frozen_position = None
         self._update(0)
