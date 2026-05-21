@@ -20,23 +20,41 @@ function broadcast(msg) {
     }
 }
 
+// Track last known title to suppress duplicate "Now playing" logs
+let _lastTitle = ''
+
 function makeCarplay() {
-    const cp = new CarplayNode()
+    const cp = new CarplayNode({
+        width: 1024,
+        height: 600,
+        fps: 30,
+        dpi: 160,
+        // frameInterval keeps periodic 'frame' commands flowing to the dongle,
+        // which prevents it from going passive and dropping AVRCP updates
+        phoneConfig: {
+            CarPlay: { frameInterval: 33 },
+            AndroidAuto: { frameInterval: 33 },
+        },
+    })
     cp.onmessage = (msg) => {
         switch (msg.type) {
             case 'plugged':
                 console.log('iPhone plugged in / connected')
+                _lastTitle = ''
                 broadcast({ type: 'plugged' })
                 break
             case 'unplugged':
                 console.log('iPhone unplugged / disconnected')
+                _lastTitle = ''
                 broadcast({ type: 'unplugged' })
                 break
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
-                    if (m.MediaSongName && m.MediaArtistName) {
+                    const key = `${m.MediaArtistName}|${m.MediaSongName}`
+                    if (m.MediaSongName && m.MediaArtistName && key !== _lastTitle) {
                         console.log(`Now playing: ${m.MediaArtistName} — ${m.MediaSongName}`)
+                        _lastTitle = key
                     }
                     broadcast({ type: 'media', data: m })
                 } else if (msg.message?.payload?.type === 3) {
@@ -54,7 +72,6 @@ function makeCarplay() {
                 }
                 break
             case 'command':
-                console.log('Command:', msg.message)
                 broadcast({ type: 'command', data: msg.message })
                 break
         }
