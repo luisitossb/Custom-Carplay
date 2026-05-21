@@ -78,7 +78,6 @@ function makeCarplay() {
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
-                    console.log('[RAW]', JSON.stringify(m))
                     const raw = Object.fromEntries(Object.entries(m).filter(([, v]) => v !== '' && v != null))
 
                     // Detect song change: artist changed OR duration changed significantly.
@@ -97,10 +96,11 @@ function makeCarplay() {
                     // Update cache for new-client replay (full merged state)
                     cache.track = Object.assign({}, cache.track, raw)
 
-                    // Log when a new complete identity arrives
-                    const key = `${raw.MediaArtistName}|${raw.MediaSongName}`
-                    if (raw.MediaSongName && raw.MediaArtistName && key !== _lastTitle) {
-                        console.log(`Now playing: ${raw.MediaArtistName} — ${raw.MediaSongName}`)
+                    // Log when a new song arrives (MediaLyrics carries the title on song changes)
+                    const title = raw.MediaLyrics ?? raw.MediaSongName
+                    const key = `${raw.MediaArtistName}|${title}`
+                    if (title && raw.MediaArtistName && key !== _lastTitle) {
+                        console.log(`Now playing: ${raw.MediaArtistName} — ${title}`)
                         _lastTitle = key
                     }
 

@@ -54,7 +54,9 @@ def send_key(action):
 
 
 def _merge_media(data):
-    name = data.get('MediaSongName')
+    # MediaLyrics is the field the dongle uses for song title on song changes;
+    # MediaSongName only appears in the initial connection burst.
+    name = data.get('MediaLyrics') or data.get('MediaSongName')
     artist = data.get('MediaArtistName')
     album = data.get('MediaAlbumName')
     duration = data.get('MediaSongDuration')
