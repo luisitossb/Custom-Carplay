@@ -78,7 +78,13 @@ function makeCarplay() {
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
-                    // Merge into cache so we always have the latest full state
+                    // If artist changed, clear stale song/album/duration from cache
+                    // before merging so Python doesn't receive the previous song's title
+                    if (cache.track && m.MediaArtistName && m.MediaArtistName !== cache.track.MediaArtistName) {
+                        delete cache.track.MediaSongName
+                        delete cache.track.MediaAlbumName
+                        delete cache.track.MediaSongDuration
+                    }
                     cache.track = Object.assign({}, cache.track,
                         Object.fromEntries(Object.entries(m).filter(([, v]) => v !== '' && v != null))
                     )

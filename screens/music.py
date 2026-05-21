@@ -2,7 +2,7 @@ import time
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from services import carplay as carplay_svc
-from services.bluetooth import get_volume, set_volume
+from services.audio import get_volume, set_volume
 
 
 def _ms_to_mmss(ms):
