@@ -8,6 +8,25 @@ import { dirname, join } from 'path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+// Label undocumented dongle message types that node-carplay logs as "Unknown"
+const UNKNOWN_TYPE_NAMES = {
+    35:  'BT paired device address',
+    36:  'BT connected device address',
+    37:  'Session state change',
+    38:  'Session init / connection reset',
+    163: 'WiFi security handshake (encrypted)',
+}
+const _origDebug = console.debug.bind(console)
+console.debug = (...args) => {
+    const msg = typeof args[0] === 'string' ? args[0] : ''
+    const match = msg.match(/Unknown message type(?:\s+without data)?:\s*(\d+)/)
+    if (match) {
+        const name = UNKNOWN_TYPE_NAMES[parseInt(match[1])]
+        if (name) { _origDebug(`[dongle] ${name}`); return }
+    }
+    _origDebug(...args)
+}
+
 // Serve debug.html (and eventually the main UI) over HTTP
 const httpServer = createServer((req, res) => {
     const file = req.url === '/' || req.url === '/debug' ? 'debug.html' : req.url.slice(1)
