@@ -42,7 +42,7 @@ function getAplay(decodeType) {
     if (_aplay && !_aplay.killed && _aplayType === decodeType) return _aplay
     if (_aplay) { try { _aplay.stdin.destroy(); _aplay.kill() } catch {} }
     const { rate, ch } = DECODE_FMT[decodeType] ?? { rate: 44100, ch: 2 }
-    _aplay = spawn('aplay', ['-f', 'S16_LE', '-r', String(rate), '-c', String(ch), '--buffer-size=4096'], {
+    _aplay = spawn('aplay', ['-f', 'S16_LE', '-r', String(rate), '-c', String(ch), '--buffer-time=20000', '--period-time=5000'], {
         stdio: ['pipe', 'ignore', 'ignore'],
     })
     _aplay.on('error', (e) => console.error('aplay:', e.message))
