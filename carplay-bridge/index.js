@@ -41,11 +41,17 @@ function makeCarplay() {
             case 'plugged':
                 console.log('iPhone plugged in / connected')
                 _lastTitle = ''
+                // Send periodic frame commands so the dongle stays active
+                // and keeps forwarding AVRCP track-change events
+                if (!cp._frameTimer) {
+                    cp._frameTimer = setInterval(() => cp.sendKey('frame'), 100)
+                }
                 broadcast({ type: 'plugged' })
                 break
             case 'unplugged':
                 console.log('iPhone unplugged / disconnected')
                 _lastTitle = ''
+                if (cp._frameTimer) { clearInterval(cp._frameTimer); cp._frameTimer = null }
                 broadcast({ type: 'unplugged' })
                 break
             case 'media':
