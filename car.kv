@@ -153,110 +153,146 @@
 
         Widget:
             size_hint_y: None
-            height: 48
+            height: 14
 
-        # Track title
-        Label:
-            id: title_label
-            text: '---'
-            font_size: '30sp'
-            bold: True
-            color: 1, 1, 1, 1
-            halign: 'center'
-            valign: 'middle'
-            text_size: self.width, None
-            size_hint_y: None
-            height: 46
-
-        Widget:
-            size_hint_y: None
-            height: 8
-
-        # Artist
-        Label:
-            id: artist_label
-            text: '---'
-            font_size: '20sp'
-            color: 0.702, 0.702, 0.702, 1  # #B3B3B3
-            halign: 'center'
-            valign: 'middle'
-            text_size: self.width, None
-            size_hint_y: None
-            height: 34
-
-        Widget:
-            size_hint_y: None
-            height: 6
-
-        # Album
-        Label:
-            id: album_label
-            text: ''
-            font_size: '16sp'
-            color: 0.325, 0.325, 0.325, 1  # #535353
-            halign: 'center'
-            valign: 'middle'
-            text_size: self.width, None
-            size_hint_y: None
-            height: 26
-
-        Widget:
-            size_hint_y: None
-            height: 20
-
-        # Time labels
+        # Main content: album art + track info side by side
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: None
-            height: 24
+            spacing: 28
 
-            Label:
-                id: time_current
-                text: '0:00'
-                font_size: '14sp'
-                color: 0.45, 0.45, 0.45, 1
-                halign: 'left'
-                text_size: self.size
-
-            Label:
-                id: time_total
-                text: '0:00'
-                font_size: '14sp'
-                color: 0.45, 0.45, 0.45, 1
-                halign: 'right'
-                text_size: self.size
-
-        Widget:
-            size_hint_y: None
-            height: 8
-
-        # Progress bar
-        BoxLayout:
-            size_hint_y: None
-            height: 10
-            canvas.before:
-                Color:
-                    rgba: 0.22, 0.22, 0.22, 1
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [3]
-
-            Widget:
-                id: progress_fill
+            # Album art
+            AnchorLayout:
                 size_hint_x: None
-                width: 0
-                canvas:
-                    Color:
-                        rgba: 0.114, 0.725, 0.329, 1
-                    RoundedRectangle:
-                        pos: self.pos
-                        size: self.size
-                        radius: [3]
+                width: 220
+                anchor_x: 'center'
+                anchor_y: 'center'
+
+                BoxLayout:
+                    size_hint: None, None
+                    size: 220, 220
+                    canvas.before:
+                        Color:
+                            rgba: 0.13, 0.13, 0.13, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [12]
+
+                    Image:
+                        id: albumart_img
+                        allow_stretch: True
+                        keep_ratio: True
+
+            # Track info
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 0
+
+                Widget:
+                    size_hint_y: None
+                    height: 18
+
+                Label:
+                    id: title_label
+                    text: '---'
+                    font_size: '28sp'
+                    bold: True
+                    color: 1, 1, 1, 1
+                    halign: 'left'
+                    valign: 'middle'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: 44
+
+                Widget:
+                    size_hint_y: None
+                    height: 8
+
+                Label:
+                    id: artist_label
+                    text: '---'
+                    font_size: '20sp'
+                    color: 0.702, 0.702, 0.702, 1
+                    halign: 'left'
+                    valign: 'middle'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: 32
+
+                Widget:
+                    size_hint_y: None
+                    height: 6
+
+                Label:
+                    id: album_label
+                    text: ''
+                    font_size: '15sp'
+                    color: 0.325, 0.325, 0.325, 1
+                    halign: 'left'
+                    valign: 'middle'
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: 22
+
+                Widget:
+
+                # Time labels
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: 22
+
+                    Label:
+                        id: time_current
+                        text: '0:00'
+                        font_size: '14sp'
+                        color: 0.45, 0.45, 0.45, 1
+                        halign: 'left'
+                        text_size: self.size
+
+                    Label:
+                        id: time_total
+                        text: '0:00'
+                        font_size: '14sp'
+                        color: 0.45, 0.45, 0.45, 1
+                        halign: 'right'
+                        text_size: self.size
+
+                Widget:
+                    size_hint_y: None
+                    height: 6
+
+                # Progress bar
+                BoxLayout:
+                    size_hint_y: None
+                    height: 8
+                    canvas.before:
+                        Color:
+                            rgba: 0.22, 0.22, 0.22, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [3]
+
+                    Widget:
+                        id: progress_fill
+                        size_hint_x: None
+                        width: 0
+                        canvas:
+                            Color:
+                                rgba: 0.114, 0.725, 0.329, 1
+                            RoundedRectangle:
+                                pos: self.pos
+                                size: self.size
+                                radius: [3]
+
+                Widget:
+                    size_hint_y: None
+                    height: 10
 
         Widget:
             size_hint_y: None
-            height: 20
+            height: 14
 
         # Volume row
         BoxLayout:

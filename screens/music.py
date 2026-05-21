@@ -1,6 +1,9 @@
+import io
+import base64
 import time
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
+from kivy.core.image import Image as CoreImage
 from services import carplay as carplay_svc
 from services.audio import get_volume, set_volume
 
@@ -17,6 +20,7 @@ class MusicScreen(Screen):
         self._frozen_position = None
         self._volume = None
         self._volume_lock = 0
+        self._albumart_b64 = None
         self._tick = Clock.schedule_interval(self._update, 0.5)
         self._update(0)
 
@@ -60,6 +64,19 @@ class MusicScreen(Screen):
             self.ids.volume_label.text = f'{self._volume}%'
             vbar = self.ids.volume_fill
             vbar.width = (self._volume / 100) * vbar.parent.width
+
+        albumart = carplay_svc.get_albumart()
+        if albumart != self._albumart_b64:
+            self._albumart_b64 = albumart
+            if albumart:
+                try:
+                    buf = io.BytesIO(base64.b64decode(albumart))
+                    core_img = CoreImage(buf, ext='jpg')
+                    self.ids.albumart_img.texture = core_img.texture
+                except Exception:
+                    self.ids.albumart_img.texture = None
+            else:
+                self.ids.albumart_img.texture = None
 
     def on_playpause(self):
         info = carplay_svc.get_track()
