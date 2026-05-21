@@ -33,14 +33,25 @@ function makeCarplay() {
                 broadcast({ type: 'unplugged' })
                 break
             case 'media':
-                console.log('Media:', msg.message)
-                broadcast({ type: 'media', data: msg.message })
+                if (msg.message?.payload?.type === 1) {
+                    const m = msg.message.payload.media
+                    if (m.MediaSongName || m.MediaArtistName || m.MediaSongDuration) {
+                        console.log(`Media: ${m.MediaArtistName} — ${m.MediaSongName}`)
+                    }
+                    broadcast({ type: 'media', data: m })
+                } else if (msg.message?.payload?.type === 3) {
+                    broadcast({ type: 'albumart', data: msg.message.payload.base64Image })
+                }
                 break
             case 'video':
-                broadcast({ type: 'video', data: Buffer.from(msg.message.data).toString('base64') })
+                if (msg.message?.data) {
+                    broadcast({ type: 'video', data: Buffer.from(msg.message.data).toString('base64') })
+                }
                 break
             case 'audio':
-                broadcast({ type: 'audio', data: Buffer.from(msg.message.data).toString('base64') })
+                if (msg.message?.data) {
+                    broadcast({ type: 'audio', data: Buffer.from(msg.message.data).toString('base64') })
+                }
                 break
             case 'command':
                 console.log('Command:', msg.message)
