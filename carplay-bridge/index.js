@@ -1,6 +1,28 @@
 import CarplayNode from 'node-carplay/node'
 import { WebSocketServer } from 'ws'
 import { spawn } from 'child_process'
+import { createServer } from 'http'
+import { readFileSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+// Serve debug.html (and eventually the main UI) over HTTP
+const httpServer = createServer((req, res) => {
+    const file = req.url === '/' || req.url === '/debug' ? 'debug.html' : req.url.slice(1)
+    try {
+        const content = readFileSync(join(__dirname, file))
+        const ext = file.split('.').pop()
+        const mime = { html: 'text/html', css: 'text/css', js: 'application/javascript' }[ext] ?? 'text/plain'
+        res.writeHead(200, { 'Content-Type': mime })
+        res.end(content)
+    } catch {
+        res.writeHead(404)
+        res.end('Not found')
+    }
+})
+httpServer.listen(3000, () => console.log('UI available at http://localhost:3000'))
 
 // PCM format per decodeType — matches node-carplay's decodeTypeMap
 const DECODE_FMT = {

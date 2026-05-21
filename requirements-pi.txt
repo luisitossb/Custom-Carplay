@@ -1,5 +1,0 @@
-# Install system deps first:
-#   sudo apt install libdbus-1-dev libglib2.0-dev pkg-config python3-dev
--r requirements.txt
-dbus-python
-websocket-client
