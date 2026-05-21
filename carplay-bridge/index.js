@@ -78,6 +78,7 @@ function makeCarplay() {
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
+                    console.log('[RAW]', JSON.stringify(m))
                     const raw = Object.fromEntries(Object.entries(m).filter(([, v]) => v !== '' && v != null))
 
                     // Detect song change: artist changed OR duration changed significantly.
