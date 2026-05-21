@@ -78,22 +78,35 @@ function makeCarplay() {
             case 'media':
                 if (msg.message?.payload?.type === 1) {
                     const m = msg.message.payload.media
-                    // If artist changed, clear stale song/album/duration from cache
-                    // before merging so Python doesn't receive the previous song's title
-                    if (cache.track && m.MediaArtistName && m.MediaArtistName !== cache.track.MediaArtistName) {
+                    const raw = Object.fromEntries(Object.entries(m).filter(([, v]) => v !== '' && v != null))
+
+                    // Detect song change: artist changed OR duration changed significantly.
+                    // When detected, drop stale identity fields from cache so the
+                    // new-client replay doesn't serve the previous song's metadata.
+                    const artistChanged = cache.track && raw.MediaArtistName &&
+                        raw.MediaArtistName !== cache.track.MediaArtistName
+                    const durationChanged = cache.track && raw.MediaSongDuration != null &&
+                        Math.abs(raw.MediaSongDuration - (cache.track.MediaSongDuration ?? 0)) > 2000
+                    if (artistChanged || durationChanged) {
                         delete cache.track.MediaSongName
                         delete cache.track.MediaAlbumName
                         delete cache.track.MediaSongDuration
                     }
-                    cache.track = Object.assign({}, cache.track,
-                        Object.fromEntries(Object.entries(m).filter(([, v]) => v !== '' && v != null))
-                    )
-                    const key = `${m.MediaArtistName}|${m.MediaSongName}`
-                    if (m.MediaSongName && m.MediaArtistName && key !== _lastTitle) {
-                        console.log(`Now playing: ${m.MediaArtistName} — ${m.MediaSongName}`)
+
+                    // Update cache for new-client replay (full merged state)
+                    cache.track = Object.assign({}, cache.track, raw)
+
+                    // Log when a new complete identity arrives
+                    const key = `${raw.MediaArtistName}|${raw.MediaSongName}`
+                    if (raw.MediaSongName && raw.MediaArtistName && key !== _lastTitle) {
+                        console.log(`Now playing: ${raw.MediaArtistName} — ${raw.MediaSongName}`)
                         _lastTitle = key
                     }
-                    broadcast({ type: 'media', data: cache.track })
+
+                    // Broadcast only what the phone actually sent — Python accumulates
+                    // its own state via _merge_media, so sending enriched/merged packets
+                    // would cause it to re-apply stale song names on every position update.
+                    broadcast({ type: 'media', data: raw })
                 } else if (msg.message?.payload?.type === 3) {
                     cache.albumart = msg.message.payload.base64Image
                     broadcast({ type: 'albumart', data: cache.albumart })

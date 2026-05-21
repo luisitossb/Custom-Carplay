@@ -61,12 +61,16 @@ def _merge_media(data):
     position = data.get('MediaSongPlayTime')
     status_val = data.get('MediaPlayStatus')
 
-    if artist and artist != _state['artist']:
-        # Artist changed means a new song — clear stale title/album/duration
-        # so the UI shows --- rather than the previous song's info
+    # Detect song change: artist changed OR duration changed by more than 2 seconds.
+    # Clear stale identity so the UI shows --- during the brief transition.
+    artist_changed = artist and artist != _state['artist']
+    duration_changed = (duration is not None and _state['duration'] > 0 and
+                        abs(duration - _state['duration']) > 2000)
+    if artist_changed or duration_changed:
         _state['title'] = '---'
         _state['album'] = ''
         _state['duration'] = 0
+
     if name:
         _state['title'] = name
     if artist:
