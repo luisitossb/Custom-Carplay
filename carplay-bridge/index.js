@@ -61,18 +61,10 @@ function getAplay(decodeType) {
     if (_aplay && !_aplay.killed && _aplayType === decodeType) return _aplay
     if (_aplay) { try { _aplay.stdin.destroy(); _aplay.kill() } catch {} }
     const { rate, ch } = DECODE_FMT[decodeType] ?? { rate: 44100, ch: 2 }
-    // paplay routes through PipeWire — avoids raw ALSA conflicts on Pi
-    _aplay = spawn('paplay', ['--raw', `--rate=${rate}`, `--channels=${ch}`, '--format=s16le'], {
+    _aplay = spawn('aplay', ['-f', 'S16_LE', '-r', String(rate), '-c', String(ch)], {
         stdio: ['pipe', 'ignore', 'ignore'],
     })
-    _aplay.on('error', (e) => {
-        console.error('paplay failed, falling back to aplay:', e.message)
-        _aplay = spawn('aplay', ['-f', 'S16_LE', '-r', String(rate), '-c', String(ch), '--buffer-size=4096'], {
-            stdio: ['pipe', 'ignore', 'ignore'],
-        })
-        _aplay.on('error', (e2) => console.error('aplay:', e2.message))
-        _aplay.on('close', () => { _aplay = null })
-    })
+    _aplay.on('error', (e) => console.error('aplay:', e.message))
     _aplay.on('close', () => { _aplay = null })
     _aplayType = decodeType
     return _aplay
